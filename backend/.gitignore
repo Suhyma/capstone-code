@@ -1,0 +1,20 @@
+# Ignore Python virtual environment
+venv/
+
+# Ignore Python compiled files
+__pycache__/
+*.pyc
+*.pyo
+
+# Ignore SQLite database (if using it)
+db.sqlite3
+
+# Ignore environment variables (if using a .env file)
+.env
+
+# Ignore VS Code settings (optional)
+.vscode/
+
+# Ignore media and static files (if applicable)
+media/
+static/
