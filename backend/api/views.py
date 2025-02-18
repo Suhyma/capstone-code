@@ -2,14 +2,34 @@ from django.shortcuts import render
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
-from .serializers import AudioFileSerializer
-from .models import AudioFile
-from .phoneme_recognition import decode_phonemes, model, processor, sr  # Import from phoneme_recognition.py
+from .serializers import AudioFileSerializer, PatientSerializer, ScoreSerializer
+from .models import AudioFile, Patient, Score
+from rest_framework import generics
+# from .phoneme_recognition import decode_phonemes, model, processor, sr  # Import from phoneme_recognition.py
 
-import librosa
-import torch
+# import librosa
+# import torch
 
 # Create your views here.
+
+# View for creating a patient (only name, age, and medical condition)
+class PatientCreateView(generics.CreateAPIView):
+    queryset = Patient.objects.all()
+    serializer_class = PatientSerializer
+
+# View for retrieving patient info (including scores related to the patient)
+class PatientDetailView(generics.RetrieveAPIView):
+    queryset = Patient.objects.all()
+    serializer_class = PatientSerializer
+
+# View for retrieving scores associated with a patient
+class ScoreListView(generics.ListAPIView):
+    queryset = Score.objects.all()
+    serializer_class = ScoreSerializer
+
+    def get_queryset(self):
+        patient_id = self.kwargs['patient_id']
+        return Score.objects.filter(patient__id=patient_id)
 
 class AudioFileUploadView(APIView):
     def post(self, request, *args, **kwargs):

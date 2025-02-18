@@ -49,7 +49,35 @@ def align_and_compare(prediction, correct):
 
     return extra_phonemes, missing_phonemes
 
-# # word = "carrot"
-# word = "insulators"
-# correct_phonemes = phoneme_bank_split[word]
-# extra_phonemes, target_phonemes = align_and_compare(prediction_phonemes, correct_phonemes)
+def get_score(prediction, phoneme_bank_split):
+    '''Calculates the performance score based on Levenshtein distance,
+       normalizing based on word & prediction lengths. Penalties are made for
+       missing phonemes, extra phonemes, and substitutions. This calculated
+       score determines how feedback is given and how to proceed in the exercise
+       workflow.
+    '''
+    # find the closest matching word + phonemes from the word bank
+    correct_word, lev_distance, prediction_phonemes = find_most_similar_word(prediction, phoneme_bank_split) # EVENTUALLY REPLACE THIS WITH "CURRENT EXERCISE WORD" rather than looking for what possible word it is
+    if correct_word is None:
+        return 0  # no valid match found
+    correct_phonemes = phoneme_bank_split[correct_word]
+
+    # align and analyze phonemes
+    extra_phonemes, missing_phonemes = align_and_compare(prediction_phonemes, correct_phonemes)
+    
+    # create a score based on Levenshtein distance
+    max_length = max(len(prediction_phonemes), len(correct_phonemes))
+    if max_length == 0:
+        return 0 
+
+    # normalized score (1 - distance ratio)
+    raw_score = 1 - (lev_distance / max_length) 
+    # if the score is less than 0.5, completely wrong and try again; if between certain ranges, give feedback and try again to improve; if close to 1, can move on
+    # need to test score sensitivity
+
+    # apply penalties based on missing and extra phonemes
+    penalty = (len(extra_phonemes) + len(missing_phonemes)) / (2 * max_length) # the max error is 2N where N is the max_length
+    # consider weighing different errors differently, e.g. additions and deletions vs substitution -> does this make sense though if it's aimed to treat substitutions
+
+    final_score = max(0, raw_score - penalty)  # ensure score is not negative
+    return final_score

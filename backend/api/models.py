@@ -20,7 +20,7 @@ class Score(models.Model):
     def __str__(self):
         return f"Score for {self.patient.name} on {self.date}"
 
-# 
+# audio model
 class AudioFile(models.Model):
     # The audio file uploaded by the user
     file = models.FileField(upload_to='audio_files/')
