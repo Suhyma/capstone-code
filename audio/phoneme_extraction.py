@@ -41,7 +41,6 @@ def extract_phonemes(audiofile):
     prediction = decode_phonemes(predicted_ids[0], processor, ignore_stress=True)
     # => should give 'b ɪ k ʌ z j u ɚ z s l i p ɪ ŋ ɪ n s t ɛ d ə v k ɔ ŋ k ɚ ɪ ŋ ð ə l ʌ v l i ɹ z p ɹ ɪ n s ə s h æ z b ɪ k ʌ m ə v f ɪ t ə l w ɪ θ n b oʊ p ɹ ə ʃ æ ɡ i s ɪ t s ð ɛ ɹ ə k u ɪ ŋ d ʌ v'
 
-    print(prediction)
     return prediction
 
 
