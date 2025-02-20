@@ -5,6 +5,7 @@ from rest_framework import status
 from .serializers import AudioFileSerializer, PatientSerializer, ScoreSerializer
 from .models import AudioFile, Patient, Score
 from rest_framework import generics
+from rest_framework.generics import ListAPIView
 # from .phoneme_recognition import decode_phonemes, model, processor, sr  # Import from phoneme_recognition.py
 
 # import librosa
@@ -12,12 +13,28 @@ from rest_framework import generics
 
 # Create your views here.
 
-# View for creating a patient (only name, age, and medical condition)
+# View for creating a patient (name, age, and medical condition)
 class PatientCreateView(generics.CreateAPIView):
     queryset = Patient.objects.all()
     serializer_class = PatientSerializer
 
-# View for retrieving patient info (including scores related to the patient)
+# View for retrieving entire patient list
+class PatientListView(ListAPIView):
+    queryset = Patient.objects.all()
+    serializer_class = PatientSerializer
+
+# View for updating a specific patient's info
+class PatientUpdateView(generics.UpdateAPIView):
+    queryset = Patient.objects.all()
+    serializer_class = PatientSerializer
+    lookup_field = 'pk'  # You can use 'pk' to look up a patient by primary key
+
+# View for deleting a patient
+class PatientDeleteView(generics.DestroyAPIView):
+    queryset = Patient.objects.all()
+    serializer_class = PatientSerializer
+
+# View for retrieving specific individual patient info (including scores related to the patient)
 class PatientDetailView(generics.RetrieveAPIView):
     queryset = Patient.objects.all()
     serializer_class = PatientSerializer
