@@ -1,6 +1,18 @@
 from django.db import models
+from django.contrib.auth.models import AbstractUser
 
 # Create your models here.
+
+# extending default user model to allow role based access
+class User(AbstractUser):
+    ROLE_CHOICES = [
+        ('SLP', 'Speech-Language Pathologist'),
+        ('Patient', 'Patient'),
+    ]
+    role = models.CharField(max_length=7, choices=ROLE_CHOICES, default='Patient')
+
+    def __str__(self):
+        return self.username
 
 # patient info model
 class Patient(models.Model):
