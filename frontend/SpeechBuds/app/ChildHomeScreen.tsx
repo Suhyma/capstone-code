@@ -17,15 +17,17 @@ const GrowingScreen = () => {
       </View>
       
       {/* Right Section - Task List */}
-      <View style={styles.tasksContainer}>
+      <View style={styles.title}>
         <Text style={styles.header}>LET'S GET GROWING!</Text>
         
         <ScrollView>
         {tasks.map((task, index) => (
           <Link href = "/ExerciseScreen1" key={index} style={styles.taskCard}>
-            <Text style={styles.taskTitle}>{task.title}</Text>
-            <Text style={styles.taskDetails}>Due Date: {task.dueDate}</Text>
-            <Text style={styles.taskDetails}>Seeds Available: {task.seeds}</Text>
+            <View>
+              <Text style={styles.taskTitle}>{task.title}</Text>
+              <Text style={styles.taskDetails}>Due Date: {task.dueDate}</Text>
+              <Text style={styles.taskDetails}>Seeds Available: {task.seeds}</Text>
+            </View>
           </Link>
           ))}
         </ScrollView>
@@ -66,7 +68,7 @@ const styles = StyleSheet.create({
     fontSize: 24,
     textAlign: "center",
   },
-  tasksContainer: {
+  title: {
     flex: 1,
     padding: 10,
   },

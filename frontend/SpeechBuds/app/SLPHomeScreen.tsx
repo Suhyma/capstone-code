@@ -1,5 +1,6 @@
 import React from "react";
 import { View, Text, ScrollView, StyleSheet, TouchableOpacity } from "react-native";
+import {Link} from 'expo-router';
 
 const HomeScreen = () => {
   return (
@@ -33,6 +34,7 @@ const HomeScreen = () => {
       {/* My Clients Section */}
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>MY CLIENTS</Text>
+        
         <View style={styles.clientsRow}>
           <View style={styles.clientCard}>
             <Text style={styles.clientName}>Sarah Grey</Text>

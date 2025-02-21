@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Image } from 'react-native';
+import {View, Text, StyleSheet, TouchableOpacity, Image } from 'react-native';
 import {Link} from 'expo-router';
 
 export default function Index() {
@@ -9,11 +9,23 @@ export default function Index() {
       {/* Green Background */}
       <View style={styles.background}>
         
+        {/* Background Images */}
+        <Image
+          source={require('@/assets/images/Flower.png')}
+          style={styles.flower}
+        />
+        <Image
+          source={require('@/assets/images/Corn.png')}
+          style={styles.corn}
+        />
+        <Image
+          source={require('@/assets/images/Strawberry.png')}
+          style={styles.strawberry}
+        />
+
         {/* Brown Rectangle */}
         <View style={styles.rectangle}>
           
-          {/* Decorative Icons */}
-
           {/* "Speech Buds" Text */}
           <Text style={styles.title}>SPEECH BUDS</Text>
 
@@ -44,9 +56,32 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
+  flower: {
+    position: 'absolute',
+    top: 0,    // Adjust distance from top
+    left: 0,   // Adjust distance from left
+    width: 300,  // Adjust size of image
+    height: 300,
+  },
+  corn: {
+    position: 'absolute',
+    top: 80,    // Adjust distance from top
+    left: 1000,   // Adjust distance from left
+    width: 300,  // Adjust size of image
+    height: 300,
+  },
+  strawberry: {
+    position: 'absolute',
+    top: 300,    // Adjust distance from top
+    left: 500,   // Adjust distance from left
+    width: 300,  // Adjust size of image
+    height: 300,
+  },
   rectangle: {
     width: '60%',
     backgroundColor: '#CDA879', // Card background
+    borderWidth: 3,
+    borderColor: '#684503',
     borderRadius: 12,
     padding: 16,
     alignItems: 'center',
@@ -75,12 +110,12 @@ const styles = StyleSheet.create({
   },
   button: {
     backgroundColor: '#96C449', // Green button
+    borderWidth: 2,
+    borderColor: '#205E0B',
     paddingHorizontal: 16,
     paddingVertical: 8,
     borderRadius: 8,
     alignItems: 'center',
-  },
-  buttonText: {
     fontSize: 16,
     fontWeight: 'bold',
     color: '#000', // Black text
