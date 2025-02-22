@@ -1,4 +1,5 @@
 from django.db import models
+from django.conf import settings
 from django.contrib.auth.models import AbstractUser
 
 # Create your models here.
@@ -26,27 +27,15 @@ class Patient(models.Model):
 
 # scores model (related to patient via foreign key)
 class Score(models.Model):
-    patient = models.ForeignKey(Patient, on_delete=models.CASCADE, related_name="scores")
+    """Stores the final exercise score for a patient."""
+    patient = models.ForeignKey('Patient', on_delete=models.CASCADE)
     score_value = models.FloatField()
     date = models.DateTimeField(auto_now_add=True)
 
-    def __str__(self):
-        return f"Score for {self.patient.name} on {self.date}"
-
 # audio model
 class AudioFile(models.Model):
-    # The audio file uploaded by the user
-    file = models.FileField(upload_to='audio_files/')
-    
-    # Time when the file was uploaded
+    """Model to temporarily store an uploaded audio file for processing."""
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    file = models.FileField(upload_to='temp_audio/')  # Temporarily stored file
     uploaded_at = models.DateTimeField(auto_now_add=True)
-    
-    # Flag indicating if the audio has been processed
-    processed = models.BooleanField(default=False)
-    
-    # The result of phoneme recognition (will be a list or dictionary of phonemes)
-    result = models.JSONField(null=True, blank=True)
-
-    def __str__(self):
-        return f"Audio File {self.id} - {self.uploaded_at}"
 
