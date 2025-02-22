@@ -16,6 +16,7 @@ class User(AbstractUser):
 
 # patient info model
 class Patient(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE)  # Links patient to user
     name = models.CharField(max_length=100)
     age = models.IntegerField()
     medical_condition = models.TextField()

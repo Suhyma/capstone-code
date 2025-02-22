@@ -11,6 +11,7 @@ from rest_framework.decorators import api_view
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib import messages
 from rest_framework.permissions import IsAuthenticated
+from .permissions import IsSLP, IsPatientOrSLP
 # from .phoneme_recognition import decode_phonemes, model, processor, sr  # Import from phoneme_recognition.py
 
 # import librosa
@@ -22,32 +23,32 @@ from rest_framework.permissions import IsAuthenticated
 class PatientCreateView(generics.CreateAPIView):
     queryset = Patient.objects.all()
     serializer_class = PatientSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, IsSLP]
 
 # View for retrieving entire patient list
 class PatientListView(ListAPIView):
     queryset = Patient.objects.all()
     serializer_class = PatientSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, IsSLP]
 
 # View for updating a specific patient's info
 class PatientUpdateView(generics.UpdateAPIView):
     queryset = Patient.objects.all()
     serializer_class = PatientSerializer
     lookup_field = 'pk'  # You can use 'pk' to look up a patient by primary key
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, IsSLP]
 
 # View for deleting a patient
 class PatientDeleteView(generics.DestroyAPIView):
     queryset = Patient.objects.all()
     serializer_class = PatientSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, IsSLP]
 
 # View for retrieving specific individual patient info (including scores related to the patient)
 class PatientDetailView(generics.RetrieveAPIView):
     queryset = Patient.objects.all()
     serializer_class = PatientSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, IsPatientOrSLP]
 
 # User Registration View (for API)
 @api_view(['POST'])
