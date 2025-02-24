@@ -1,84 +1,122 @@
-import * as React from "react";
-import { View, StyleSheet, Dimensions } from "react-native";
-import { Video, ResizeMode, AVPlaybackStatusSuccess } from "expo-av";
+import React, { useRef, useState } from "react";
+import { View, Text, StyleSheet, Dimensions } from "react-native";
+import { Video, ResizeMode } from "expo-av";
 import { Link } from "expo-router";
 
-// Get screen width for responsive sizing
-const { width } = Dimensions.get("window");
+// Get screen width and height for responsiveness
+const { width, height } = Dimensions.get("window");
 
-export default function VideoScreen() {
-  const video = React.useRef<Video>(null);
-  const [status, setStatus] = React.useState<AVPlaybackStatusSuccess | null>(null);
+const RightScreen = () => {
+  const video = useRef<Video>(null);
+  const [status, setStatus] = useState<any>(null);
 
   return (
-    <View style={styles.contentContainer}>
-      
-      {/* Video Wrapper */}
-      <View style={styles.videoContainer}>
-        <Video style={styles.video}
-          ref={video}
-          //style={styles.video}
-          source={require("../assets/images/Test.mp4")}
-          useNativeControls
-          //resizeMode={ResizeMode.CONTAIN} // ✅ Corrected syntax
-          shouldPlay
-          onPlaybackStatusUpdate={(status) => {
-            if (status.isLoaded) {
-              setStatus(status);
-            }
-          }}
-        />
-
-        {/* Button */}
-        <View style={styles.controlsContainer}>
-          <Link href="/ExerciseScreen2" style={styles.button}>
-            Start Exercise
+    <View style={styles.container}>
+      {/* Brown Card (80% of Screen) */}
+      <View style={styles.card}>
+        {/* Header with Exit Button */}
+        <View style={styles.header}>
+          <Text style={styles.title}>Right</Text>
+          <Link href="/ChildHomeScreen" style={styles.exitButton}>
+            <Text style={styles.exitButtonText}>Exit</Text>
           </Link>
         </View>
-      
+
+        {/* Video Container (Fixed Aspect Ratio & Scaling) */}
+        <View style={styles.videoContainer}>
+          <Video
+            ref={video}
+            style={styles.video}
+            source={require("../assets/images/Test.mp4")}
+            useNativeControls
+            resizeMode={ResizeMode.CONTAIN} // ✅ Corrected Type Issue
+            shouldPlay
+            onPlaybackStatusUpdate={(status) => {
+              if (status.isLoaded) {
+                setStatus(status);
+              }
+            }}
+          />
+        </View>
+
+        {/* Start Exercise Button */}
+        <Link href="/ExerciseScreen2" style={styles.startButton}>
+          <Text style={styles.startButtonText}>Start Exercise</Text>
+        </Link>
       </View>
     </View>
   );
-}
+};
 
-// Styles
+// 🎨 Styles
 const styles = StyleSheet.create({
-  contentContainer: {
+  container: {
     flex: 1,
-    alignItems: "center",
+    backgroundColor: "#A4D65E", // Green background
     justifyContent: "center",
-    backgroundColor: "#88C040", // Green background
+    alignItems: "center",
+  },
+  card: {
+    width: "80%", // Responsive width
+    height: "80%", // Responsive height
+    backgroundColor: "#D1A878", // Light brown background
+    //padding: 20,
+    //borderRadius: 10,
+    borderWidth: 2,
+    borderColor: "#5A3E1B", // Dark brown border
+    alignItems: "center",
+    //justifyContent: "space-between",
+    justifyContent: "center",
+  },
+  header: {
+    flexDirection: "row",
+    width: "100%",
+    justifyContent: "space-between", // Exit button on the right
+    alignItems: "center",
+  },
+  title: {
+    fontSize: 22,
+    fontWeight: "bold",
+    color: "#432818",
+    textAlign: "center",
+    flex: 1, // Pushes exit button to the right
+  },
+  exitButton: {
+    backgroundColor: "#5A3E1B",
+    paddingVertical: 5,
+    paddingHorizontal: 10,
+    borderRadius: 5,
+  },
+  exitButtonText: {
+    color: "white",
+    fontWeight: "bold",
   },
   videoContainer: {
-    width: width * 0.9, // ✅ Dynamic width (90% of screen)
-    //width: 550,
-    height: width * 0.5, // ✅ Dynamic height (Maintain aspect ratio)
-    //height: 375,
-    backgroundColor: "#D9B382", // Brown background
+    //flex: 1, // Allows video to take remaining space
+    width: "80%", // Ensures video container is full width
+    height: "60%",
     justifyContent: "center",
     alignItems: "center",
-    borderRadius: 10,
-    overflow: "hidden",
   },
   video: {
-    //flex:3,
-    //paddingHorizontal: 150,
-    width: "100%", // ✅ Ensures full width
-    height: "100%", // ✅ Ensures full height
+    width: "100%", // Ensures video scales properly
+    height: "100%", // Ensures video scales properly
+    //aspectRatio: 16 / 9, // ✅ Maintains correct video aspect ratio
+    //alignSelf: "stretch",
+    resizeMode: "contain",
   },
-  controlsContainer: {
-    marginTop: 20,
-  },
-  button: {
-    backgroundColor: "#684503", // Brown button
-    borderWidth: 2,
-    borderColor: "#684503",
-    paddingHorizontal: 16,
+  startButton: {
+    backgroundColor: "#5A3E1B",
     paddingVertical: 10,
-    borderRadius: 8,
-    textAlign: "center",
-    fontSize: 16,
+    paddingHorizontal: 20,
+    borderRadius: 5,
+    marginBottom: 20, // Adds spacing from bottom
+  },
+  startButtonText: {
+    color: "white",
     fontWeight: "bold",
-    color: "#FFFFFF", // White text
+    fontSize: 16,
   },
 });
+
+export default RightScreen;

@@ -1,8 +1,7 @@
 import React, { useState } from "react";
 import { View, Text, TextInput, TouchableOpacity, StyleSheet } from "react-native";
-import Checkbox from "expo-checkbox";
+import { Picker } from "@react-native-picker/picker"; // Import Picker
 import { Link } from "expo-router";
-
 
 const RegistrationScreen = () => {
   const [form, setForm] = useState({
@@ -62,34 +61,25 @@ const RegistrationScreen = () => {
           onChangeText={(text) => handleInputChange("password", text)}
         />
 
-        {/* Role Selection */}
-        <View style={styles.checkboxContainer}>
-          <View style={styles.checkboxOption}>
-            <Checkbox
-              value={form.role === "Child"}
-              onValueChange={() => setForm({ ...form, role: "Child" })}
-              color={form.role === "Child" ? "#5A3E1B" : undefined}
-            />
-            <Text style={styles.checkboxLabel}>Child</Text>
-          </View>
-
-          <View style={styles.checkboxOption}>
-            <Checkbox
-              value={form.role === "SLP"}
-              onValueChange={() => setForm({ ...form, role: "SLP" })}
-              color={form.role === "SLP" ? "#5A3E1B" : undefined}
-            />
-            <Text style={styles.checkboxLabel}>SLP</Text>
-          </View>
+        {/* Dropdown for Role Selection */}
+        <View style={styles.dropdownContainer}>
+          <Text style={styles.label}>Select Role</Text>
+          <Picker
+            selectedValue={form.role}
+            onValueChange={(itemValue) => handleInputChange("role", itemValue)}
+            style={styles.picker}
+          >
+            <Picker.Item label="Child" value="Child" />
+            <Picker.Item label="SLP" value="SLP" />
+          </Picker>
         </View>
 
         {/* Register Button */}
-        <Link href = "/Login">
-            <TouchableOpacity style={styles.registerButton} onPress={handleRegister}>
-                <Text style={styles.registerButtonText}>Register</Text>
-            </TouchableOpacity>
+        <Link href="/Login">
+          <TouchableOpacity style={styles.registerButton} onPress={handleRegister}>
+            <Text style={styles.registerButtonText}>Register</Text>
+          </TouchableOpacity>
         </Link>
-
       </View>
     </View>
   );
@@ -128,22 +118,23 @@ const styles = StyleSheet.create({
     marginBottom: 10,
     color: "#432818",
   },
-  checkboxContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    marginVertical: 10,
+  dropdownContainer: {
+    width: "100%",
+    backgroundColor: "#FFF",
+    borderWidth: 1,
+    borderColor: "#5A3E1B",
+    borderRadius: 5,
+    marginBottom: 10,
   },
-  checkboxOption: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginHorizontal: 50,
-  },
-  checkboxLabel: {
+  label: {
     fontSize: 16,
-    marginLeft: 5,
     color: "#432818",
-    marginHorizontal: 50,
+    padding: 5,
+    fontWeight: "bold",
+  },
+  picker: {
+    width: "100%",
+    height: 50,
   },
   registerButton: {
     marginTop: 20,
