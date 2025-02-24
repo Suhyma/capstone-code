@@ -1,4 +1,5 @@
 import Levenshtein
+import numpy as np
 from difflib import SequenceMatcher
 from phonemes import phoneme_bank_split
 from phoneme_similarity import PHONEME_SIMILARITY
@@ -112,3 +113,7 @@ def get_score(prediction):
 
     final_score = max(0, raw_score)  # ensure score is not negative
     return final_score, extra_phonemes, missing_phonemes
+
+
+def get_session_score(all_scores): # where all_scores is an array of all the scores in the session
+    return np.mean(all_scores)

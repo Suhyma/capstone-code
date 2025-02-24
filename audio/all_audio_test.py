@@ -4,7 +4,7 @@ from audio_feedback import generate_feedback_for_target
 
 # general pipeline: record audio -> phoneme_extraction.py -> audio_scoring.py -> audio_feedback.py
 
-# step 1: record audio
+# step 1: record audio TODO: implementation of this with the frontend
 
 # step 2: extract phonemes
 predicted_phonemes = extract_phonemes("data/test/insulators.wav")
