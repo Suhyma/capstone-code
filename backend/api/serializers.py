@@ -5,9 +5,10 @@ from django.contrib.auth.models import Group
 
 # audio model serializer
 class AudioFileSerializer(serializers.ModelSerializer):
+    """Handles audio file upload"""
     class Meta:
         model = AudioFile
-        fields = '__all__'  
+        fields = ['file']
 
 # patient model serializer
 class PatientSerializer(serializers.ModelSerializer):
@@ -31,9 +32,9 @@ class UserLoginSerializer(serializers.Serializer):
     username = serializers.CharField()
     password = serializers.CharField()
 
-# score model serializer (read-only since scores are generated in the backend)
+# Score serializer
 class ScoreSerializer(serializers.ModelSerializer):
+    """Handles score storage"""
     class Meta:
         model = Score
         fields = ['patient', 'score_value', 'date']
-        read_only_fields = ['patient', 'date']  # Don't let users directly modify these
