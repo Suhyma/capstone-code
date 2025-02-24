@@ -31,12 +31,12 @@ export default function Index() {
 
           {/* Buttons */}
           <View style={styles.buttonContainer}>
-            <Link href="/ChildHomeScreen" style={styles.button}>
-              Child
+            <Link href="/Registration" style={styles.button}>
+              Registration
             </Link>
 
-            <Link href="/SLPHomeScreen" style={styles.button}>
-              SLP
+            <Link href="/Login" style={styles.button}>
+              Login
             </Link>
 
           </View>
@@ -58,21 +58,21 @@ const styles = StyleSheet.create({
   },
   flower: {
     position: 'absolute',
-    top: 0,    // Adjust distance from top
-    left: 0,   // Adjust distance from left
+    top: 50,    // Adjust distance from top
+    left: 50,   // Adjust distance from left
     width: 300,  // Adjust size of image
     height: 300,
   },
   corn: {
     position: 'absolute',
-    top: 80,    // Adjust distance from top
-    left: 1000,   // Adjust distance from left
+    top: 300,    // Adjust distance from top
+    left: 1100,   // Adjust distance from left
     width: 300,  // Adjust size of image
     height: 300,
   },
   strawberry: {
     position: 'absolute',
-    top: 300,    // Adjust distance from top
+    top: 600,    // Adjust distance from top
     left: 500,   // Adjust distance from left
     width: 300,  // Adjust size of image
     height: 300,

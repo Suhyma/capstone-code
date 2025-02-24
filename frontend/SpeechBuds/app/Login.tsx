@@ -1,0 +1,157 @@
+import React, { useState } from "react";
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert } from "react-native";
+import CheckBox from "expo-checkbox";
+import { Link } from "expo-router";
+
+const LoginScreen = () => {
+  const [form, setForm] = useState({
+    username: "",
+    password: "",
+    role: "", // Will store 'Child' or 'SLP'
+  });
+
+  const handleInputChange = (field: string, value: string) => {
+    setForm({ ...form, [field]: value });
+  };
+
+  const handleLogin = () => {
+    if (!form.username || !form.password || !form.role) {
+      Alert.alert("Error", "Please fill in all fields and select a role.");
+      return;
+    }
+
+    console.log("User Logged In:", form);
+  };
+
+  return (
+    <View style={styles.container}>
+      <View style={styles.card}>
+        <Text style={styles.title}>Login</Text>
+
+        {/* Username Field */}
+        <TextInput
+          style={styles.input}
+          placeholder="Username"
+          placeholderTextColor="#432818"
+          onChangeText={(text) => handleInputChange("username", text)}
+        />
+
+        {/* Password Field */}
+        <TextInput
+          style={styles.input}
+          placeholder="Password"
+          secureTextEntry
+          placeholderTextColor="#432818"
+          onChangeText={(text) => handleInputChange("password", text)}
+        />
+
+        {/* Role Selection */}
+        <View style={styles.checkboxContainer}>
+          <View style={styles.checkboxRow}>
+            <CheckBox
+              value={form.role === "Child"}
+              onValueChange={() => setForm({ ...form, role: "Child" })}
+            />
+            <Text style={styles.checkboxLabel}>Child</Text>
+          </View>
+          <View style={styles.checkboxRow}>
+            <CheckBox
+              value={form.role === "SLP"}
+              onValueChange={() => setForm({ ...form, role: "SLP" })}
+            />
+            <Text style={styles.checkboxLabel}>SLP</Text>
+          </View>
+        </View>
+
+        {/* Login Button */}
+        {form.role === "Child" ? (
+          <Link href="/ChildHomeScreen" asChild>
+            <TouchableOpacity style={styles.loginButton} onPress={handleLogin}>
+              <Text style={styles.loginButtonText}>Login</Text>
+            </TouchableOpacity>
+          </Link>
+        ) : form.role === "SLP" ? (
+          <Link href="/SLPHomeScreen" asChild>
+            <TouchableOpacity style={styles.loginButton} onPress={handleLogin}>
+              <Text style={styles.loginButtonText}>Login</Text>
+            </TouchableOpacity>
+          </Link>
+        ) : (
+          <TouchableOpacity style={styles.disabledButton} onPress={handleLogin}>
+            <Text style={styles.loginButtonText}>Login</Text>
+          </TouchableOpacity>
+        )}
+      </View>
+    </View>
+  );
+};
+
+// Styles
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: "#A4D65E", // Green background
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  card: {
+    width: "80%",
+    backgroundColor: "#D1A878", // Light brown background
+    padding: 20,
+    borderRadius: 10,
+    borderWidth: 2,
+    borderColor: "#5A3E1B", // Dark brown border
+    alignItems: "center",
+  },
+  title: {
+    fontSize: 22,
+    fontWeight: "bold",
+    color: "#432818",
+    marginBottom: 20,
+  },
+  input: {
+    width: "100%",
+    backgroundColor: "#FFF", // White input fields
+    padding: 10,
+    borderRadius: 5,
+    borderWidth: 1,
+    borderColor: "#5A3E1B",
+    marginBottom: 10,
+    color: "#432818",
+  },
+  checkboxContainer: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    width: "100%",
+    marginVertical: 10,
+  },
+  checkboxRow: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  checkboxLabel: {
+    marginLeft: 5,
+    fontSize: 16,
+    color: "#432818",
+  },
+  loginButton: {
+    marginTop: 20,
+    backgroundColor: "#5A3E1B", // Brown button
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 5,
+  },
+  disabledButton: {
+    marginTop: 20,
+    backgroundColor: "#A4A4A4", // Gray disabled button
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 5,
+  },
+  loginButtonText: {
+    color: "white",
+    fontWeight: "bold",
+  },
+});
+
+export default LoginScreen;
