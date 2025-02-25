@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { View, Text, TextInput, TouchableOpacity, StyleSheet } from "react-native";
 import { Picker } from "@react-native-picker/picker"; // Import Picker
 import { Link } from "expo-router";
+import { registerUser } from '../services/api';
 
 const RegistrationScreen = () => {
   const [form, setForm] = useState({
@@ -10,16 +11,32 @@ const RegistrationScreen = () => {
     email: "",
     username: "",
     password: "",
-    role: "Child", // Default role
+    role: "Patient", // Default role
   });
+
+  const [error, setError] = useState('');  // State for error message
+  const [success, setSuccess] = useState(false);  // State for successful registration
 
   const handleInputChange = (field: string, value: string) => {
     setForm({ ...form, [field]: value });
   };
 
-  const handleRegister = () => {
-    console.log("User Registered:", form);
-    // Add your registration logic here (API call, validation, etc.)
+  const handleRegister = async () => {
+    try {
+      const userData = { 
+        username: form.username, 
+        password: form.password 
+      };
+
+      const response = await registerUser(userData);  // Call the registerUser API function
+      console.log("Registration successful:", response);
+      setSuccess(true);  // Set success message if registration is successful
+      setError('');  // Clear any previous error
+    } catch (error) {
+      console.error("Registration failed:", error);
+      setSuccess(false);  // Clear success if there's an error
+      setError("Registration failed. Please try again.");
+    }
   };
 
   return (
@@ -69,7 +86,7 @@ const RegistrationScreen = () => {
             onValueChange={(itemValue) => handleInputChange("role", itemValue)}
             style={styles.picker}
           >
-            <Picker.Item label="Child" value="Child" />
+            <Picker.Item label="Patient" value="Patient" />
             <Picker.Item label="SLP" value="SLP" />
           </Picker>
         </View>

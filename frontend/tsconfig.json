@@ -1,0 +1,9 @@
+{
+  "compilerOptions": {
+    "baseUrl": ".", // Set base URL to the frontend directory
+    "paths": {
+      "@/*": ["./SpeechBuds/*"] // Resolve @ to the SpeechBuds folder
+    }
+  },
+  "extends": "expo/tsconfig.base"
+}
