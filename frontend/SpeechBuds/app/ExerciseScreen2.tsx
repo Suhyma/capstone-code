@@ -1,45 +1,84 @@
 import { CameraView, CameraType, useCameraPermissions } from 'expo-camera';
-import { useState } from 'react';
-import { Button, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import {Link} from 'expo-router';
+import { useRef, useState } from 'react';
+import { Button, StyleSheet, Text, TouchableOpacity, View, Dimensions, Image } from 'react-native';
+import { Link } from 'expo-router';
+import { Video, ResizeMode } from 'expo-av';  // ✅ Import ResizeMode
+
+const { width, height } = Dimensions.get('window');
 
 export default function App() {
-  const [facing, setFacing] = useState<CameraType>('back');
+  const [facing, setFacing] = useState<CameraType>('front');
   const [permission, requestPermission] = useCameraPermissions();
+  const [isRecording, setIsRecording] = useState(false);
+  const [videoUri, setVideoUri] = useState<string | null>(null);
+  const cameraRef = useRef<CameraView>(null);
+  const videoRef = useRef<Video | null>(null);  // ✅ Ensure videoRef is not undefined
 
   if (!permission) {
-    // Camera permissions are still loading.
     return <View />;
   }
 
   if (!permission.granted) {
-    // Camera permissions are not granted yet.
     return (
       <View style={styles.container}>
         <Text style={styles.message}>We need your permission to show the camera</Text>
-        <Button onPress={requestPermission} title="grant permission" />
+        <Button onPress={requestPermission} title="Grant Permission" />
       </View>
     );
   }
 
-  function toggleCameraFacing() {
-    setFacing(current => (current === 'back' ? 'front' : 'back'));
+  async function toggleRecording() {
+    if (!cameraRef.current) return;
+
+    if (isRecording) {
+      setIsRecording(false);
+      cameraRef.current.stopRecording();
+    } else {
+      setIsRecording(true);
+      try {
+        const video = await cameraRef.current.recordAsync({
+          maxDuration: 30,
+          //mute: false,
+        });
+        //setVideoUri(video.uri);
+      } catch (error) {
+        console.error("Error recording video:", error);
+      } finally {
+        setIsRecording(false);
+      }
+    }
   }
 
   return (
     <View style={styles.container}>
+      {/* Camera View */}
       <View style={styles.cameraContainer}>
-        <CameraView style={styles.camera} facing={facing}> </CameraView>
+        <CameraView ref={cameraRef} style={styles.camera} facing={facing} />
       </View>
 
+      {/* Buttons */}
       <View style={styles.buttonContainer}>
-        <TouchableOpacity style={styles.button} onPress={toggleCameraFacing}>
-          <Text style={styles.text}>Flip Camera</Text>
+        <TouchableOpacity style={[styles.button, isRecording && styles.recordingButton]} onPress={toggleRecording}>
+          <Text style={styles.text}>{isRecording ? "Stop" : "Record"}</Text>
         </TouchableOpacity>
+
         <Link href="/ExerciseScreen3" style={styles.button}>
-          Get Feedback
+          <Text style={styles.text}>Get Feedback</Text>
         </Link>
       </View>
+
+      {/* Video Thumbnail */}
+      {videoUri && (
+        <TouchableOpacity style={styles.thumbnailContainer} onPress={() => videoRef.current?.presentFullscreenPlayer()}>
+          <Video
+            ref={(ref) => (videoRef.current = ref)}  // ✅ Ensure videoRef is set properly
+            source={{ uri: videoUri }}
+            style={styles.thumbnail}
+            resizeMode={ResizeMode.COVER}  // ✅ Correct usage
+            shouldPlay={false}
+          />
+        </TouchableOpacity>
+      )}
     </View>
   );
 }
@@ -47,50 +86,66 @@ export default function App() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#88C040", // Green background
+    backgroundColor: "#88C040",
+    justifyContent: "center",
+    alignItems: "center",
+    padding: 20,
+  },
+  cameraContainer: {
+    width: width * 0.7,
+    height: height * 0.5,
+    aspectRatio: 4 / 3,
+    backgroundColor: "#D9B382",
+    borderRadius: 10,
+    borderWidth: 2,
+    borderColor: '#684503',
+    overflow: "hidden",
     justifyContent: "center",
     alignItems: "center",
   },
-  cameraContainer: {
-    //flex: 1,
-    width: 550,  // Set a fixed width
-    height: 375, // Set a fixed height
-    padding: 10,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: "#D9B382", // Brown background
-    paddingHorizontal: 10,
+  camera: {
+    flex: 1,
+    width: "100%",
   },
   message: {
     textAlign: 'center',
-    paddingBottom: 10,
-  },
-  camera: {
-    flex: 3,
-    paddingHorizontal: 150,
-
+    //paddingBottom: 10,
   },
   buttonContainer: {
-    flex: 1,
-    flexDirection: 'row',
-    backgroundColor: 'transparent',
-    margin: 64,
+    flexDirection: "row",
+    marginTop: 20,
+    gap: 15,
   },
   button: {
-    backgroundColor: '#684503', // Brown button
-    borderWidth: 2,
-    borderColor: '#684503',
-    paddingHorizontal: 16,
-    paddingVertical: 8,
+    backgroundColor: "#684503",
+    paddingHorizontal: 20,
+    paddingVertical: 12,
     borderRadius: 8,
-    alignItems: 'center',
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: '#FFFFFF', // White text
+    alignItems: "center",
+    justifyContent: "center",
+    minWidth: width * 0.3,
+  },
+  recordingButton: {
+    backgroundColor: "red",
   },
   text: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: 'white',
+    fontSize: 18,
+    fontWeight: "bold",
+    color: "#FFFFFF",
+  },
+  thumbnailContainer: {
+    position: "absolute",
+    bottom: 20,
+    left: 20,
+    borderRadius: 10,
+    overflow: "hidden",
+    borderWidth: 2,
+    borderColor: "#684503",
+  },
+  thumbnail: {
+    width: 80,
+    height: 80,
+    borderRadius: 10,
   },
 });
+

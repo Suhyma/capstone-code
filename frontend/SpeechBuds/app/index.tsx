@@ -1,8 +1,10 @@
 import React from 'react';
-import {View, Text, StyleSheet, TouchableOpacity, Image } from 'react-native';
-import {Link} from 'expo-router';
+import { View, Text, StyleSheet, TouchableOpacity, Image } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
 
 export default function Index() {
+  const navigation = useNavigation();
+
   return (
     <View style={styles.container}>
       
@@ -31,15 +33,14 @@ export default function Index() {
 
           {/* Buttons */}
           <View style={styles.buttonContainer}>
-            <Link href="/Registration" style={styles.button}>
-              Registration
-            </Link>
-
-            <Link href="/Login" style={styles.button}>
-              Login
-            </Link>
-
+            <TouchableOpacity
+              style={styles.button}
+              onPress={() => navigation.navigate("Login")}
+            >
+              <Text style={styles.buttonText}>Login</Text>
+            </TouchableOpacity>
           </View>
+
         </View>
       </View>
     </View>
@@ -58,23 +59,23 @@ const styles = StyleSheet.create({
   },
   flower: {
     position: 'absolute',
-    top: 50,    // Adjust distance from top
-    left: 50,   // Adjust distance from left
-    width: 300,  // Adjust size of image
+    top: 50,
+    left: 50,
+    width: 300,
     height: 300,
   },
   corn: {
     position: 'absolute',
-    top: 300,    // Adjust distance from top
-    left: 1100,   // Adjust distance from left
-    width: 300,  // Adjust size of image
+    top: 300,
+    left: 1100,
+    width: 300,
     height: 300,
   },
   strawberry: {
     position: 'absolute',
-    top: 600,    // Adjust distance from top
-    left: 500,   // Adjust distance from left
-    width: 300,  // Adjust size of image
+    top: 600,
+    left: 500,
+    width: 300,
     height: 300,
   },
   rectangle: {
@@ -90,11 +91,6 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.2,
     shadowRadius: 4,
-  },
-  icon: {
-    position: 'absolute',
-    width: 60,
-    height: 60,
   },
   title: {
     fontSize: 48,
@@ -116,6 +112,8 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     borderRadius: 8,
     alignItems: 'center',
+  },
+  buttonText: {
     fontSize: 16,
     fontWeight: 'bold',
     color: '#000', // Black text

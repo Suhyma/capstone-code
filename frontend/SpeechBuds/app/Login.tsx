@@ -19,7 +19,6 @@ const LoginScreen = () => {
       Alert.alert("Error", "Please fill in all fields and select a role.");
       return;
     }
-
     console.log("User Logged In:", form);
   };
 
@@ -81,6 +80,14 @@ const LoginScreen = () => {
             <Text style={styles.loginButtonText}>Login</Text>
           </TouchableOpacity>
         )}
+
+        {/* Registration Link */}
+        <Text style={styles.registerText}>
+          Don't have an account?{" "}
+          <Link href="/Registration" style={styles.registerLink}>
+            Click here
+          </Link>
+        </Text>
       </View>
     </View>
   );
@@ -90,17 +97,17 @@ const LoginScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#A4D65E", // Green background
+    backgroundColor: "#A4D65E",
     justifyContent: "center",
     alignItems: "center",
   },
   card: {
     width: "80%",
-    backgroundColor: "#D1A878", // Light brown background
+    backgroundColor: "#D1A878",
     padding: 20,
     borderRadius: 10,
     borderWidth: 2,
-    borderColor: "#5A3E1B", // Dark brown border
+    borderColor: "#5A3E1B",
     alignItems: "center",
   },
   title: {
@@ -111,7 +118,7 @@ const styles = StyleSheet.create({
   },
   input: {
     width: "100%",
-    backgroundColor: "#FFF", // White input fields
+    backgroundColor: "#FFF",
     padding: 10,
     borderRadius: 5,
     borderWidth: 1,
@@ -136,14 +143,14 @@ const styles = StyleSheet.create({
   },
   loginButton: {
     marginTop: 20,
-    backgroundColor: "#5A3E1B", // Brown button
+    backgroundColor: "#5A3E1B",
     paddingVertical: 10,
     paddingHorizontal: 20,
     borderRadius: 5,
   },
   disabledButton: {
     marginTop: 20,
-    backgroundColor: "#A4A4A4", // Gray disabled button
+    backgroundColor: "#A4A4A4",
     paddingVertical: 10,
     paddingHorizontal: 20,
     borderRadius: 5,
@@ -151,6 +158,15 @@ const styles = StyleSheet.create({
   loginButtonText: {
     color: "white",
     fontWeight: "bold",
+  },
+  registerText: {
+    marginTop: 15,
+    fontSize: 16,
+    color: "#432818",
+  },
+  registerLink: {
+    color: "#0000FF", // Blue text for link
+    textDecorationLine: "underline",
   },
 });
 
