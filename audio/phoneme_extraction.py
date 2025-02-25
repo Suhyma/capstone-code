@@ -32,7 +32,7 @@ def extract_phonemes(audiofile):
 
     # reading a single audio file
     audio_array, _ = librosa.load(audiofile, sr=sr)
-    inputs = processor(audio_array, return_tensors="pt", padding=True)
+    inputs = processor(audio_array, return_tensors="pt", padding="longest", truncation=True, max_length=16000)
 
     with torch.no_grad():
         logits = model(inputs["input_values"]).logits

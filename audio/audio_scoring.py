@@ -1,8 +1,8 @@
 import Levenshtein
 import numpy as np
 from difflib import SequenceMatcher
-from phonemes import phoneme_bank_split
-from phoneme_similarity import PHONEME_SIMILARITY
+from .phonemes import phoneme_bank_split
+from .phoneme_similarity import PHONEME_SIMILARITY
 
 def find_most_similar_word(prediction): # eventually, should not have to use this function. When that happens, calculate Lev. dist. in adjusted_lev function
     prediction_phonemes = prediction.split()
