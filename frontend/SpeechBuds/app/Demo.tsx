@@ -40,7 +40,7 @@ const RightScreen = () => {
         </View>
 
         {/* Start Exercise Button */}
-        <Link href="/Record" style={styles.startButton}>
+        <Link href="/Record_test" style={styles.startButton}>
           <Text style={styles.startButtonText}>Start Exercise</Text>
         </Link>
       </View>
@@ -107,7 +107,10 @@ const styles = StyleSheet.create({
     aspectRatio: 16 / 9, // ✅ Maintains correct video aspect ratio
     alignSelf: "stretch",
     resizeMode: "contain",
-    overflow: "hidden",
+    overflow: "visible",
+    marginRight: 50,
+    marginLeft: 50,
+    
   },
   startButton: {
     backgroundColor: "#5A3E1B",

@@ -56,16 +56,6 @@ export default function App() {
         <CameraView ref={cameraRef} style={styles.camera} facing={facing} />
       </View>
 
-      {/* Buttons */}
-      <View style={styles.buttonContainer}>
-        <TouchableOpacity style={[styles.button, isRecording && styles.recordingButton]} onPress={toggleRecording}>
-          <Text style={styles.text}>{isRecording ? "Stop" : "Record"}</Text>
-        </TouchableOpacity>
-
-        <Link href="/Feedback" style={styles.button}>
-          <Text style={styles.text}>Get Feedback</Text>
-        </Link>
-      </View>
 
       {/* Video Thumbnail */}
       {videoUri && (
@@ -79,6 +69,18 @@ export default function App() {
           />
         </TouchableOpacity>
       )}
+
+      {/* Buttons */}
+      <View style={styles.buttonContainer}>
+        <TouchableOpacity style={[styles.button, isRecording && styles.recordingButton]} onPress={toggleRecording}>
+          <Text style={styles.text}>{isRecording ? "Stop" : "Record"}</Text>
+        </TouchableOpacity>
+
+        <Link href="/Feedback" style={styles.button}>
+          <Text style={styles.text}>Get Feedback</Text>
+        </Link>
+      </View>
+
     </View>
   );
 }
