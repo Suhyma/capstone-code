@@ -1,7 +1,7 @@
 from django.urls import path
 from . import views
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
-from .views import AudioFileUploadView, PatientCreateView, PatientDetailView, ScoreListView, PatientListView, PatientUpdateView, PatientDeleteView
+from .views import PatientCreateView, PatientDetailView, ScoreListView, PatientListView, PatientUpdateView, PatientDeleteView, submit_audio
 
 urlpatterns = [
     # path('upload/', AudioFileUploadView.as_view(), name='audio-file-upload'),

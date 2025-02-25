@@ -1,3 +1,5 @@
+import sys
+import os
 from django.shortcuts import render, redirect, get_object_or_404
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -11,12 +13,18 @@ from rest_framework.decorators import api_view
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib import messages
 from rest_framework.permissions import IsAuthenticated
-from .permissions import IsSLP, IsPatientOrSLP, IsAuthenticated, IsPatient
+from .permissions import IsSLP, IsPatientOrSLP, IsPatient
 from rest_framework.parsers import MultiPartParser, FormParser
 from django.http import JsonResponse
+
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..")))
+
 from audio.phoneme_extraction import extract_phonemes  # Import the phoneme extraction function
+from audio.phonemes import phoneme_bank_split
 from audio.audio_scoring import get_score  # Import the scoring function
 from audio.audio_feedback import generate_feedback_for_target
+
+
 
 # import librosa
 # import torch

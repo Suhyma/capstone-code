@@ -35,7 +35,10 @@ class Score(models.Model):
 # audio model
 class AudioFile(models.Model):
     """Model to temporarily store an uploaded audio file for processing."""
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, null=True)  # Allow null temporarily
     file = models.FileField(upload_to='temp_audio/')  # Temporarily stored file
     uploaded_at = models.DateTimeField(auto_now_add=True)
+    processed = models.BooleanField(default=False)  # Optional if you need it
+    result = models.JSONField(null=True, blank=True)  # Add this line
+
 
