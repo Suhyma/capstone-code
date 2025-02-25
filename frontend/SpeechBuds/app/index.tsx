@@ -2,11 +2,7 @@ import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Image } from 'react-native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { useNavigation } from '@react-navigation/native';
-
-type StackParamList = {
-  Index: undefined;
-  Login: undefined;
-};
+import { StackParamList } from './types';
 
 type NavigationProp = StackNavigationProp<StackParamList, 'Index'>;
 
