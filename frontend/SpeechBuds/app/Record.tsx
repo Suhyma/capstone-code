@@ -62,7 +62,7 @@ export default function App() {
           <Text style={styles.text}>{isRecording ? "Stop" : "Record"}</Text>
         </TouchableOpacity>
 
-        <Link href="/ExerciseScreen3" style={styles.button}>
+        <Link href="/Feedback" style={styles.button}>
           <Text style={styles.text}>Get Feedback</Text>
         </Link>
       </View>
@@ -89,23 +89,28 @@ const styles = StyleSheet.create({
     backgroundColor: "#88C040",
     justifyContent: "center",
     alignItems: "center",
-    padding: 20,
+    //padding: 200,
   },
   cameraContainer: {
-    width: width * 0.7,
-    height: height * 0.5,
-    aspectRatio: 4 / 3,
+    width: width * 0.8,
+    height: height * 0.7,
+    //aspectRatio: 4 / 3,
     backgroundColor: "#D9B382",
     borderRadius: 10,
     borderWidth: 2,
     borderColor: '#684503',
-    overflow: "hidden",
+    //overflow: "hidden",
     justifyContent: "center",
     alignItems: "center",
   },
   camera: {
     flex: 1,
-    width: "100%",
+    width: "80%",
+    //height: "60%",
+    marginTop: 20,
+    marginBottom: 20,
+    marginLeft: 20,
+    marginRight: 20,
   },
   message: {
     textAlign: 'center',

@@ -22,7 +22,7 @@ const GrowingScreen = () => {
         
         <ScrollView>
         {tasks.map((task, index) => (
-          <Link href = "/ExerciseScreen1" key={index} style={styles.taskCard}>
+          <Link href = "/Demo" key={index} style={styles.taskCard}>
             <View>
               <Text style={styles.taskTitle}>{task.title}</Text>
               <Text style={styles.taskDetails}>Due Date: {task.dueDate}</Text>

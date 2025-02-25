@@ -40,7 +40,7 @@ const RightScreen = () => {
         </View>
 
         {/* Start Exercise Button */}
-        <Link href="/ExerciseScreen2" style={styles.startButton}>
+        <Link href="/Record" style={styles.startButton}>
           <Text style={styles.startButtonText}>Start Exercise</Text>
         </Link>
       </View>
@@ -57,11 +57,11 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   card: {
-    width: "80%", // Responsive width
-    height: "80%", // Responsive height
+    width: width * 0.8, // Responsive width
+    height: height * 0.8, // Responsive height
     backgroundColor: "#D1A878", // Light brown background
-    //padding: 20,
-    //borderRadius: 10,
+    //padding: 100,
+    borderRadius: 10,
     borderWidth: 2,
     borderColor: "#5A3E1B", // Dark brown border
     alignItems: "center",
@@ -73,6 +73,8 @@ const styles = StyleSheet.create({
     width: "100%",
     justifyContent: "space-between", // Exit button on the right
     alignItems: "center",
+    marginTop: 10,
+    marginRight: 10,
   },
   title: {
     fontSize: 22,
@@ -80,6 +82,7 @@ const styles = StyleSheet.create({
     color: "#432818",
     textAlign: "center",
     flex: 1, // Pushes exit button to the right
+    marginBottom: 15,
   },
   exitButton: {
     backgroundColor: "#5A3E1B",
@@ -92,18 +95,19 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
   },
   videoContainer: {
-    //flex: 1, // Allows video to take remaining space
-    width: "80%", // Ensures video container is full width
-    height: "60%",
+    flex: 1, // Allows video to take remaining space
+    //width: "100%", // Ensures video container is full width
+    //height: "60%",
     justifyContent: "center",
     alignItems: "center",
   },
   video: {
-    width: "100%", // Ensures video scales properly
+    //width: "100%", // Ensures video scales properly
     height: "100%", // Ensures video scales properly
-    //aspectRatio: 16 / 9, // ✅ Maintains correct video aspect ratio
-    //alignSelf: "stretch",
+    aspectRatio: 16 / 9, // ✅ Maintains correct video aspect ratio
+    alignSelf: "stretch",
     resizeMode: "contain",
+    overflow: "hidden",
   },
   startButton: {
     backgroundColor: "#5A3E1B",
@@ -111,6 +115,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     borderRadius: 5,
     marginBottom: 20, // Adds spacing from bottom
+    marginTop: 15,
   },
   startButtonText: {
     color: "white",
