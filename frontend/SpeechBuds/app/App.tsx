@@ -1,9 +1,14 @@
-import { createStackNavigator } from '@react-navigation/stack';
+import { createStackNavigator, StackNavigationProp } from '@react-navigation/stack';
 import { NavigationContainer } from '@react-navigation/native';
 import Index from './index';
 import Login from './Login';
 
-const Stack = createStackNavigator();
+type StackParamList = {
+  Index: undefined;
+  Login: undefined;
+};
+
+const Stack = createStackNavigator<StackParamList>();
 
 export default function App() {
   return (

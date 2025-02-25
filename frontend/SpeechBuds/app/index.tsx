@@ -1,51 +1,43 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Image } from 'react-native';
+import { StackNavigationProp } from '@react-navigation/stack';
 import { useNavigation } from '@react-navigation/native';
 
+type StackParamList = {
+  Index: undefined;
+  Login: undefined;
+};
+
+type NavigationProp = StackNavigationProp<StackParamList, 'Index'>;
+
 export default function Index() {
-  const navigation = useNavigation();
+  const navigation = useNavigation<NavigationProp>();
 
   return (
     <View style={styles.container}>
-      
       {/* Green Background */}
       <View style={styles.background}>
-        
         {/* Background Images */}
-        <Image
-          source={require('@/assets/images/Flower.png')}
-          style={styles.flower}
-        />
-        <Image
-          source={require('@/assets/images/Corn.png')}
-          style={styles.corn}
-        />
-        <Image
-          source={require('@/assets/images/Strawberry.png')}
-          style={styles.strawberry}
-        />
+        <Image source={require('@/assets/images/Flower.png')} style={styles.flower} />
+        <Image source={require('@/assets/images/Corn.png')} style={styles.corn} />
+        <Image source={require('@/assets/images/Strawberry.png')} style={styles.strawberry} />
 
         {/* Brown Rectangle */}
         <View style={styles.rectangle}>
-          
           {/* "Speech Buds" Text */}
           <Text style={styles.title}>SPEECH BUDS</Text>
 
           {/* Buttons */}
           <View style={styles.buttonContainer}>
-            <TouchableOpacity
-              style={styles.button}
-              onPress={() => navigation.navigate("Login")}
-            >
+            <TouchableOpacity style={styles.button} onPress={() => navigation.navigate("Login")}>
               <Text style={styles.buttonText}>Login</Text>
             </TouchableOpacity>
           </View>
-
         </View>
       </View>
     </View>
   );
-};
+}
 
 const styles = StyleSheet.create({
   container: {
