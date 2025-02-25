@@ -3,6 +3,11 @@ import { NavigationContainer } from '@react-navigation/native';
 import Index from './index';
 import Login from './Login';
 import { StackParamList } from './types';
+import ChildHomeScreen from './ChildHomeScreen'
+import Demo from './Demo';
+import Feedback from './Feedback';
+import Record from './Record';
+import SLPHomeScreen from './SLPHomeScreen';
 
 const Stack = createStackNavigator<StackParamList>();
 
@@ -10,8 +15,13 @@ export default function App() {
   return (
     <NavigationContainer>
       <Stack.Navigator>
-        <Stack.Screen name="Index" component={Index} />
-        <Stack.Screen name="Login" component={Login} />
+        <Stack.Screen name="Index" component={Index} options={{ title: 'Home' }} />
+        <Stack.Screen name="Login" component={Login} options={{ title: 'Login' }} />
+        <Stack.Screen name="ChildHomeScreen" component={ChildHomeScreen} options={{ title: 'Child Home Screen' }} />
+        <Stack.Screen name="SLPHomeScreen" component={SLPHomeScreen} options={{ title: 'SLP Home Screen' }} />
+        <Stack.Screen name="Demo" component={Demo} options={{ title: 'Example Video' }} />
+        <Stack.Screen name="Record" component={Record} options={{ title: 'Record' }} />
+        <Stack.Screen name="Feedback" component={Feedback} options={{ title: 'Feedback' }} />
       </Stack.Navigator>
     </NavigationContainer>
   );

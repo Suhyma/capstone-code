@@ -6,7 +6,7 @@ import { Link } from "expo-router";
 // Get screen width and height for responsiveness
 const { width, height } = Dimensions.get("window");
 
-const RightScreen = () => {
+const DemoScreen = () => {
   const video = useRef<Video>(null);
   const [status, setStatus] = useState<any>(null);
 
@@ -127,4 +127,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default RightScreen;
+export default DemoScreen;

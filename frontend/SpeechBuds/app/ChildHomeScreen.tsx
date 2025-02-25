@@ -1,58 +1,61 @@
 import React from "react";
-import { View, Text, StyleSheet, ScrollView } from "react-native";
-import {Link} from 'expo-router';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from "react-native";
+import { useNavigation } from "@react-navigation/native";
+import { StackParamList } from './types';
+import { StackNavigationProp } from '@react-navigation/stack';
+import { useNavigate } from "./hooks/useNavigate";
 
-const GrowingScreen = () => {
+const ChildHomeScreen = () => {
+  const { navigateTo } = useNavigate(); // Get the function
+
   return (
     <View style={styles.container}>
       {/* Left Section - Garden Grid */}
       <View style={styles.gardenContainer}>
         <View style={styles.gardenBox}>
-          {/* Placeholder for plants/icons */}
           <Text style={styles.emoji}>🌽🌽🌽🌽</Text>
           <Text style={styles.emoji}>🌽🌽🌽🌽</Text>
           <Text style={styles.emoji}>🌸🌸🌸🌸</Text>
           <Text style={styles.emoji}>🍓🍓🍓🍓</Text>
         </View>
       </View>
-      
+
       {/* Right Section - Task List */}
-      <View style={styles.title}>
-        <Text style={styles.header}>LET'S GET GROWING!</Text>
-        
+      <View style={styles.taskListContainer}>
+        <Text style={styles.header}>Let's Get Growing!</Text>
+
         <ScrollView>
-        {tasks.map((task, index) => (
-          <Link href = "/Demo" key={index} style={styles.taskCard}>
-            <View>
+          {tasks.map((task, index) => (
+            <TouchableOpacity
+              key={index}
+              style={styles.taskCard}
+              onPress={() => navigateTo("Demo", { exerciseType: task.title, word: task.words[task.wordCount]})}
+            >
               <Text style={styles.taskTitle}>{task.title}</Text>
               <Text style={styles.taskDetails}>Due Date: {task.dueDate}</Text>
               <Text style={styles.taskDetails}>Seeds Available: {task.seeds}</Text>
-            </View>
-          </Link>
+            </TouchableOpacity>
           ))}
         </ScrollView>
-      
       </View>
     </View>
   );
 };
 
 const tasks = [
-  { title: '"R" Sound Initial', dueDate: 'Feb 28, 2024', seeds: 55 },
-  { title: '"R" Sound Medial', dueDate: 'Feb 28, 2024', seeds: 55 },
-  { title: '"R" Sound Final', dueDate: 'Mar 7, 2024', seeds: 55 },
-  { title: '"Th" Sound Initial', dueDate: 'Mar 7, 2024', seeds: 55 },
+  { title: 'S Sound Initial', dueDate: 'Feb 28, 2024', seeds: 55,  words: ['Summer', 'Stain', 'Silly', 'Sock', 'Say'], wordCount: 0 },
+  { title: 'R Sound Medial', dueDate: 'Feb 28, 2024', seeds: 55,  words: ['Berry', 'Carrot', 'Corn', 'Arrow', 'Parent'], wordCount: 0},
 ];
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    flexDirection: "row",
+    flexDirection: "row", // Set main layout to row
     backgroundColor: "#88C040", // Green background
     padding: 10,
   },
   gardenContainer: {
-    flex: 1,
+    flex: 1, // Takes half the screen
     alignItems: "center",
     justifyContent: "center",
   },
@@ -68,8 +71,8 @@ const styles = StyleSheet.create({
     fontSize: 24,
     textAlign: "center",
   },
-  title: {
-    flex: 1,
+  taskListContainer: {
+    flex: 1, // Takes half the screen
     padding: 10,
   },
   header: {
@@ -93,4 +96,5 @@ const styles = StyleSheet.create({
   },
 });
 
-export default GrowingScreen;
+
+export default ChildHomeScreen;
