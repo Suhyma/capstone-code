@@ -6,6 +6,6 @@ export type StackParamList = {
     SLPHomeScreen: undefined;
     Demo: { exerciseType: string, word: string};
     Record: { word: string, attemptNumber: number}; // want to give them max 3 tries for a word
-    Feedback: { exerciseType: string; word: string; attemptNumber: number; score: number };
+    Feedback: { word: string; attemptNumber: number; score: number };
   };
   

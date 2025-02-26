@@ -12,6 +12,7 @@ export default function Record() {
   const { navigateTo } = useNavigate();
   const route = useRoute();
   const { word, attempt } = route.params as { word: string, attempt: number};;  
+  const score = 0; // placeholder before backend scoring is connected
 
   const [facing, setFacing] = useState<CameraType>('front');
   const [permission, requestPermission] = useCameraPermissions();
@@ -84,7 +85,7 @@ export default function Record() {
 
         <TouchableOpacity 
           style={styles.button}
-          onPress={() => navigateTo("Feedback", { word: word; attemptNumber: number; score: number })}
+          onPress={() => navigateTo("Feedback", { word: word, attemptNumber: attempt, score: score })}
         >
           <Text style={styles.text}>Get Feedback</Text>
           

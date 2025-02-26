@@ -47,8 +47,8 @@ const styles = StyleSheet.create({
   },
   flower: {
     position: 'absolute',
-    top: 50,
-    left: 50,
+    top: 5,
+    left: 5,
     width: 300,
     height: 300,
   },
