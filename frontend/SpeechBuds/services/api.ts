@@ -5,7 +5,11 @@ const API_URL = 'http://127.0.0.1:8000/api/register/';  // backend URL
 // Function to handle user registration
 export const registerUser = async (userData: { username: string, password: string }) => {
   try {
-    const response = await axios.post(API_URL, userData);
+    const response = await axios.post(API_URL, userData, {
+      headers: {
+        'Content-Type': 'application/json',  // Specify content type as JSON
+      }
+    });
     return response.data; // Handle success
   } catch (error) {
     console.error("Registration error", error);
