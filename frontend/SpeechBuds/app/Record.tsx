@@ -86,6 +86,7 @@ export default function Record() {
         <TouchableOpacity 
           style={styles.button}
           onPress={() => navigateTo("Feedback", { word: word, attemptNumber: attempt, score: score })}
+          //random comment for Sandra
         >
           <Text style={styles.text}>Get Feedback</Text>
           
