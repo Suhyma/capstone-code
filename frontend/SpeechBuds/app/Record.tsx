@@ -5,19 +5,22 @@ import { Link } from 'expo-router';
 import { Video, ResizeMode } from 'expo-av';  // ✅ Import ResizeMode
 import { useRoute } from '@react-navigation/native';
 import { useNavigate } from './hooks/useNavigate';
+import { submitAudio } from '../services/api'; // Import your submitAudio function
+
 
 const { width, height } = Dimensions.get('window');
 
 export default function Record() {
   const { navigateTo } = useNavigate();
   const route = useRoute();
-  const { word, attempt } = route.params as { word: string, attempt: number};;  
+  const { word, attempt, feedback } = route.params as { word: string, attempt: number, feedback: string};;  
   const score = 0; // placeholder before backend scoring is connected
 
   const [facing, setFacing] = useState<CameraType>('front');
   const [permission, requestPermission] = useCameraPermissions();
   const [isRecording, setIsRecording] = useState(false);
   const [videoUri, setVideoUri] = useState<string | null>(null);
+  const [audioUri, setAudioUri] = useState<string | null>(null); //recording audio library
   const cameraRef = useRef<CameraView>(null);
   const videoRef = useRef<Video | null>(null);  // ✅ Ensure videoRef is not undefined
 
@@ -47,7 +50,12 @@ export default function Record() {
           maxDuration: 30,
           //mute: false,
         });
-        //setVideoUri(video.uri);
+        if (video) {
+          //setVideoUri(video.uri);
+          setAudioUri(video.uri); // recording audio
+        } else {
+          console.error("No video returned from camera.");
+        }
       } catch (error) {
         console.error("Error recording video:", error);
       } finally {
@@ -55,6 +63,29 @@ export default function Record() {
       }
     }
   }
+
+   // Function to submit audio to the backend and navigate to feedback page
+  const sendAudioToBackend = async () => {
+    if (audioUri) {
+      try {
+        const response = await submitAudio(audioUri); // Pass the URI of the recorded audio
+        console.log(response); // You can check the response structure here
+        
+        // Extract feedback data (e.g., score and message) from the response
+        const feedback = response; // Adjust according to the response structure from the backend
+
+        // Navigate to feedback page with word, attempt, score, and feedback message
+        navigateTo("Feedback", { 
+          word: word, 
+          attemptNumber: attempt, 
+          score: feedback.score, 
+          feedback: feedback.message 
+        });
+      } catch (error) {
+        console.error("Error submitting audio:", error);
+      }
+    }
+  };
 
   return (
     <View style={styles.container}>
@@ -85,7 +116,7 @@ export default function Record() {
 
         <TouchableOpacity 
           style={styles.button}
-          onPress={() => navigateTo("Feedback", { word: word, attemptNumber: attempt, score: score })}
+          onPress={sendAudioToBackend}
           //random comment for Sandra
         >
           <Text style={styles.text}>Get Feedback</Text>
