@@ -3,10 +3,16 @@ import { useRef, useState } from 'react';
 import { Button, StyleSheet, Text, TouchableOpacity, View, Dimensions, Image } from 'react-native';
 import { Link } from 'expo-router';
 import { Video, ResizeMode } from 'expo-av';  // ✅ Import ResizeMode
+import { useRoute } from '@react-navigation/native';
+import { useNavigate } from './hooks/useNavigate';
 
 const { width, height } = Dimensions.get('window');
 
-export default function App() {
+export default function Record() {
+  const { navigateTo } = useNavigate();
+  const route = useRoute();
+  const { word, attempt } = route.params as { word: string, attempt: number};;  
+
   const [facing, setFacing] = useState<CameraType>('front');
   const [permission, requestPermission] = useCameraPermissions();
   const [isRecording, setIsRecording] = useState(false);
@@ -76,9 +82,17 @@ export default function App() {
           <Text style={styles.text}>{isRecording ? "Stop" : "Record"}</Text>
         </TouchableOpacity>
 
-        <Link href="/Feedback" style={styles.button}>
+        <TouchableOpacity 
+          style={styles.button}
+          onPress={() => navigateTo("Feedback", { word: word; attemptNumber: number; score: number })}
+        >
           <Text style={styles.text}>Get Feedback</Text>
-        </Link>
+          
+        </TouchableOpacity>
+
+        {/* <Link href="/Feedback" style={styles.button}>
+          <Text style={styles.text}>Get Feedback</Text>
+        </Link> */}
       </View>
 
     </View>

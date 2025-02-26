@@ -1,12 +1,20 @@
 import React, { useRef, useState } from "react";
-import { View, Text, StyleSheet, Dimensions } from "react-native";
+import { View, Text, StyleSheet, Dimensions, TouchableOpacity } from "react-native";
 import { Video, ResizeMode } from "expo-av";
 import { Link } from "expo-router";
+import { useNavigate } from "./hooks/useNavigate";
+import { useRoute } from "@react-navigation/native";
 
 // Get screen width and height for responsiveness
 const { width, height } = Dimensions.get("window");
 
 const DemoScreen = () => {
+  const { navigateTo } = useNavigate();
+  const route = useRoute();
+  const { exerciseType, word } = route.params as { exerciseType: string; word: string };
+  const attempt = 0; // TODO: RETRIEVE THE ATTEMPT NO. FROM THE STATUS OR SOMEWHERE EVENTUALLY, max. 3 attempts for recording
+
+
   const video = useRef<Video>(null);
   const [status, setStatus] = useState<any>(null);
 
@@ -16,7 +24,7 @@ const DemoScreen = () => {
       <View style={styles.card}>
         {/* Header with Exit Button */}
         <View style={styles.header}>
-          <Text style={styles.title}>Right</Text>
+          <Text style={styles.title}>{word}</Text>
           <Link href="/ChildHomeScreen" style={styles.exitButton}>
             <Text style={styles.exitButtonText}>Exit</Text>
           </Link>
@@ -27,7 +35,7 @@ const DemoScreen = () => {
           <Video
             ref={video}
             style={styles.video}
-            source={require("../assets/images/Test.mp4")}
+            source={require("../assets/images/Test.mp4")} // use "word" param to identify which video to use
             useNativeControls
             resizeMode={ResizeMode.CONTAIN} // ✅ Corrected Type Issue
             shouldPlay
@@ -40,9 +48,17 @@ const DemoScreen = () => {
         </View>
 
         {/* Start Exercise Button */}
-        <Link href="/Record_test" style={styles.startButton}>
+        {/* <Link href="/Record" style={styles.startButton}>
           <Text style={styles.startButtonText}>Start Exercise</Text>
-        </Link>
+        </Link> */}
+
+        <TouchableOpacity
+          style={styles.startButton}
+          onPress={() => navigateTo("Record",  { word: word, attemptNumber: attempt})}
+        >
+          <Text style={styles.startButtonText}>Start Exercise</Text>
+        </TouchableOpacity>
+
       </View>
     </View>
   );
