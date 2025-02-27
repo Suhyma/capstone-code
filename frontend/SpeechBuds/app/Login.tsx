@@ -128,13 +128,15 @@ const styles = StyleSheet.create({
   },
   checkboxContainer: {
     flexDirection: "row",
-    justifyContent: "space-between",
+    justifyContent: "center",
     width: "100%",
     marginVertical: 10,
   },
+
   checkboxRow: {
     flexDirection: "row",
     alignItems: "center",
+    marginHorizontal: 10,
   },
   checkboxLabel: {
     marginLeft: 5,

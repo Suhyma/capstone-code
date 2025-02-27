@@ -138,7 +138,6 @@ const styles = StyleSheet.create({
     backgroundColor: "#88C040",
     justifyContent: "center",
     alignItems: "center",
-    //padding: 200,
   },
   cameraContainer: {
     width: width * 0.8,

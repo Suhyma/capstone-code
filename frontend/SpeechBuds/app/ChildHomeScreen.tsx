@@ -44,7 +44,7 @@ const ChildHomeScreen = () => {
 
 const tasks = [
   { title: 'S Sound Initial', dueDate: 'Feb 28, 2024', seeds: 55,  words: ['Summer', 'Stain', 'Silly', 'Sock', 'Say'], wordCount: 0 },
-  { title: 'R Sound Medial', dueDate: 'Feb 28, 2024', seeds: 55,  words: ['Berry', 'Carrot', 'Corn', 'Arrow', 'Parent'], wordCount: 0},
+  { title: 'R Sound Medial', dueDate: 'Feb 28, 2024', seeds: 55,  words: ['Carrot', 'Berry', 'Corn', 'Arrow', 'Parent'], wordCount: 0},
 ];
 
 const styles = StyleSheet.create({

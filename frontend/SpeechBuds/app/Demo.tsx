@@ -1,7 +1,6 @@
 import React, { useRef, useState } from "react";
 import { View, Text, StyleSheet, Dimensions, TouchableOpacity } from "react-native";
-import { Video, ResizeMode } from "expo-av";
-import { Link } from "expo-router";
+import { Video, ResizeMode, AVPlaybackStatusSuccess, AVPlaybackStatus } from "expo-av";
 import { useNavigate } from "./hooks/useNavigate";
 import { useRoute } from "@react-navigation/native";
 
@@ -14,48 +13,42 @@ const DemoScreen = () => {
   const { exerciseType, word } = route.params as { exerciseType: string; word: string };
   const attempt = 0; // TODO: RETRIEVE THE ATTEMPT NO. FROM THE STATUS OR SOMEWHERE EVENTUALLY, max. 3 attempts for recording
 
-
   const video = useRef<Video>(null);
   const [status, setStatus] = useState<any>(null);
+  const videoRef = React.useRef<Video>(null);
 
   return (
     <View style={styles.container}>
-      {/* Brown Card (80% of Screen) */}
-      <View style={styles.card}>
-        {/* Header with Exit Button */}
+      
+      <View style={styles.brownContainer}>
+
+        {/*Header with Exercise Word and Exit Button */}
         <View style={styles.header}>
           <Text style={styles.title}>{word}</Text>
-          <Link href="/ChildHomeScreen" style={styles.exitButton}>
+          <TouchableOpacity
+            style={styles.exitButton}
+            onPress={() => navigateTo("ChildHomeScreen")}>
             <Text style={styles.exitButtonText}>Exit</Text>
-          </Link>
+          </TouchableOpacity>
         </View>
+        
 
         {/* Video Container (Fixed Aspect Ratio & Scaling) */}
         <View style={styles.videoContainer}>
           <Video
-            ref={video}
-            style={styles.video}
-            source={require("../assets/images/Test.mp4")} // use "word" param to identify which video to use
+            ref={videoRef}
+            source={require("../assets/images/Summer.mp4")} // Ensure correct video path
             useNativeControls
-            resizeMode={ResizeMode.CONTAIN} // ✅ Corrected Type Issue
+            resizeMode={ResizeMode.COVER} // Ensures no cropping
             shouldPlay
-            onPlaybackStatusUpdate={(status) => {
-              if (status.isLoaded) {
-                setStatus(status);
-              }
-            }}
+            style={[styles.video]}
           />
         </View>
 
         {/* Start Exercise Button */}
-        {/* <Link href="/Record" style={styles.startButton}>
-          <Text style={styles.startButtonText}>Start Exercise</Text>
-        </Link> */}
-
         <TouchableOpacity
           style={styles.startButton}
-          onPress={() => navigateTo("Record",  { word: word, attemptNumber: attempt})}
-        >
+          onPress={() => navigateTo("Record",  { word: word, attemptNumber: attempt})}>
           <Text style={styles.startButtonText}>Start Exercise</Text>
         </TouchableOpacity>
 
@@ -69,72 +62,79 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#A4D65E", // Green background
+    flexDirection: "column",
     justifyContent: "center",
     alignItems: "center",
+    padding: 50,
   },
-  card: {
-    width: width * 0.8, // Responsive width
-    height: height * 0.8, // Responsive height
-    backgroundColor: "#D1A878", // Light brown background
-    //padding: 100,
+  brownContainer: {
+    flex: 1,
+    width: width * 0.9,
+    height: height * 0.8,
+    //position: "relative", // Make sure the exit button is positioned absolutely
+    flexDirection: "column",
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "#D9B382",
     borderRadius: 10,
     borderWidth: 2,
-    borderColor: "#5A3E1B", // Dark brown border
-    alignItems: "center",
-    //justifyContent: "space-between",
-    justifyContent: "center",
+    borderColor: '#684503',
+    overflow: "visible",
   },
   header: {
+    flex: 1,
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
     flexDirection: "row",
-    width: "100%",
-    justifyContent: "space-between", // Exit button on the right
+    justifyContent: "center",
     alignItems: "center",
-    marginTop: 10,
-    marginRight: 10,
   },
   title: {
-    fontSize: 22,
+    fontSize: 25,
     fontWeight: "bold",
     color: "#432818",
     textAlign: "center",
-    flex: 1, // Pushes exit button to the right
-    marginBottom: 15,
   },
   exitButton: {
+    position: "absolute",
+    top: 10,
+    right: 15, // Place the exit button in the top-right corner
     backgroundColor: "#5A3E1B",
-    paddingVertical: 5,
-    paddingHorizontal: 10,
     borderRadius: 5,
+    padding: 5,
   },
   exitButtonText: {
     color: "white",
     fontWeight: "bold",
   },
   videoContainer: {
-    flex: 1, // Allows video to take remaining space
-    //width: "100%", // Ensures video container is full width
-    //height: "60%",
+    flex: 2,
+    flexDirection: "row",
     justifyContent: "center",
     alignItems: "center",
+    position: "absolute",
+    top: 50,
+    left: 90,
+
   },
   video: {
-    //width: "100%", // Ensures video scales properly
-    height: "100%", // Ensures video scales properly
-    aspectRatio: 16 / 9, // ✅ Maintains correct video aspect ratio
-    alignSelf: "stretch",
-    resizeMode: "contain",
+    flex: 2,
+    width: "100%",
+    height: "100%",
     overflow: "visible",
-    marginRight: 50,
-    marginLeft: 50,
-    
   },
+ 
   startButton: {
     backgroundColor: "#5A3E1B",
     paddingVertical: 10,
     paddingHorizontal: 20,
     borderRadius: 5,
-    marginBottom: 20, // Adds spacing from bottom
-    marginTop: 15,
+    position: "absolute",
+    top: 550,
+    //marginBottom: 10, 
+    //marginTop: 200,
   },
   startButtonText: {
     color: "white",
@@ -142,5 +142,4 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
 });
-
 export default DemoScreen;
