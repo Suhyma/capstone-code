@@ -33,18 +33,51 @@ export const loginUser = async (username: string, password: string) => {
       },
     });
 
-    // Assuming the response contains the access and refresh tokens
+    console.log("Login API Response:", response.data); // Log response for debugging
+
     const { access, refresh } = response.data;
 
-    // Save the tokens to AsyncStorage or any secure storage mechanism
+    if (!access || !refresh) {
+      throw new Error("Invalid response from server");
+    }
+
     await AsyncStorage.setItem('access_token', access);
     await AsyncStorage.setItem('refresh_token', refresh);
 
-    return { token: access }; // Return the access token for use in the frontend
-
+    return { token: access };
   } catch (error) {
     console.error('Login error:', error);
-    throw error; // Rethrow the error to be caught in the component
+    if (axios.isAxiosError(error)) {
+      console.error('Response data:', error.response?.data);
+    }
+    throw error;
+  }
+};
+
+// Function to get the token from AsyncStorage
+const getAccessToken = async () => {
+  return await AsyncStorage.getItem("access_token");
+};
+
+// Function to fetch the patient list
+export const getPatientList = async () => {
+  try {
+    const token = await getAccessToken();
+
+    if (!token) {
+      throw new Error("No token found");
+    }
+
+    const response = await axios.get(`${API_BASE_URL}/patients/`, {
+      headers: {
+        Authorization: `Bearer ${token}`, // Send token in the Authorization header
+      },
+    });
+
+    return response.data; // Return the patient data
+  } catch (error) {
+    console.error("Error fetching patient list", error);
+    throw error; // Propagate the error
   }
 };
 

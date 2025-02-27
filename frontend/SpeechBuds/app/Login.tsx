@@ -14,12 +14,12 @@ const LoginScreen = () => {
     role: "", // Will store 'Child' or 'SLP'
   });
 
-  const [loading, setLoading] = useState(false); // State for showing loading feedback
-
+  const [loading, setLoading] = useState(false);
   const router = useRouter();
 
   const handleInputChange = (field: string, value: string) => {
     setForm({ ...form, [field]: value });
+    console.log(`Updated ${field}: ${value}`);
   };
 
   const handleLogin = async () => {
@@ -27,30 +27,38 @@ const LoginScreen = () => {
       Alert.alert("Error", "Please fill in all fields and select a role.");
       return;
     }
-  
+
     setLoading(true);
-  
     try {
+      console.log("Attempting login with:", form.username, form.password, form.role);
       const response = await loginUser(form.username, form.password);
-  
+      
       if (response.token) {
-        // If the login is successful, navigate based on the role
-        console.log("Token:", response.token);
+        console.log("Token received:", response.token);
+        await AsyncStorage.setItem('access_token', response.token);
+        await AsyncStorage.setItem('user_role', form.role);
+        
         Alert.alert("Success", "Login successful!");
-  
+        console.log("Navigating to role-based screen:", form.role);
+
+        // Ensure navigation based on role
         if (form.role === "Child") {
-          await AsyncStorage.setItem('user_role', 'Child');
+          console.log("Navigating to ChildHomeScreen");
           router.push("/ChildHomeScreen");
+          setTimeout(() => router.push("/ChildHomeScreen"), 500); // Manual navigation fallback
         } else if (form.role === "SLP") {
-          await AsyncStorage.setItem('user_role', 'SLP');
+          console.log("Navigating to SLPHomeScreen");
           router.push("/SLPHomeScreen");
+          setTimeout(() => router.push("/SLPHomeScreen"), 500); // Manual navigation fallback
         }
       }
     } catch (error) {
+      setLoading(false);
       if (error instanceof AxiosError) {
-        // You can access error.response to see the actual response from the backend
+        console.log('Login AxiosError:', error.response);
         Alert.alert("Login Failed", error.response?.data?.detail || "Something went wrong.");
       } else {
+        console.log('Login Error:', error);
         Alert.alert("Login Failed", "Something went wrong.");
       }
     }

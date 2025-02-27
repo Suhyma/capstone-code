@@ -1,8 +1,50 @@
-import React from "react";
+import React, {useState, useEffect} from "react";
 import { View, Text, ScrollView, StyleSheet, TouchableOpacity } from "react-native";
 import {Link} from 'expo-router';
+import axios from "axios";  // Importing axios for API requests
+import { getPatientList } from "../services/api";  // Assuming this function handles the API call
+import AsyncStorage from "@react-native-async-storage/async-storage";  // For token storage
+import { useRouter } from "expo-router";
+import { Alert } from 'react-native';  
+
 
 const HomeScreen = () => {
+
+  const [patients, setPatients] = useState<any[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);  // To show loading state
+  const router = useRouter();
+
+  useEffect(() => {
+    const fetchPatients = async () => {
+      try {
+        // Retrieve the token from AsyncStorage
+        const token = await AsyncStorage.getItem('token');
+        if (!token) {
+          // If there's no token, redirect to login
+          router.push('/Login');
+          return;
+        }
+
+        // Fetch the patient data from the backend using the token
+        const response = await axios.get("http://127.0.0.1:8000/api/patients/", {
+          headers: {
+            Authorization: `Bearer ${token}`,  // Adding the token to the Authorization header
+          },
+        });
+
+        // Set the patients data in the state
+        setPatients(response.data);
+        setLoading(false);
+      } catch (error) {
+        console.error("Error fetching patient data", error);
+        Alert.alert("Error", "Failed to fetch patient data.");
+        setLoading(false);
+      }
+    };
+
+    fetchPatients();
+  }, []);
+
   return (
     <ScrollView style={styles.container}>
       {/* Header */}
