@@ -1,4 +1,6 @@
 import axios from 'axios';
+import { AxiosError } from "axios";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const API_URL = 'http://127.0.0.1:8000/api/register/';  // backend registration URL
 const API_BASE_URL = "http://127.0.0.1:8000/api"; // Change if using a different URL
@@ -16,6 +18,66 @@ export const registerUser = async (userData: { username: string, password: strin
   } catch (error) {
     console.error("Registration error", error);
     throw error; // Handle failure
+  }
+};
+
+// Function to handle user login
+export const loginUser = async (username: string, password: string) => {
+  try {
+    const response = await axios.post(`${API_BASE_URL}/token/`, {
+      username,
+      password,
+    }, {
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+
+    console.log("Login API Response:", response.data); // Log response for debugging
+
+    const { access, refresh } = response.data;
+
+    if (!access || !refresh) {
+      throw new Error("Invalid response from server");
+    }
+
+    await AsyncStorage.setItem('access_token', access);
+    await AsyncStorage.setItem('refresh_token', refresh);
+
+    return { token: access };
+  } catch (error) {
+    console.error('Login error:', error);
+    if (axios.isAxiosError(error)) {
+      console.error('Response data:', error.response?.data);
+    }
+    throw error;
+  }
+};
+
+// Function to get the token from AsyncStorage
+const getAccessToken = async () => {
+  return await AsyncStorage.getItem("access_token");
+};
+
+// Function to fetch the patient list
+export const getPatientList = async () => {
+  try {
+    const token = await getAccessToken();
+
+    if (!token) {
+      throw new Error("No token found");
+    }
+
+    const response = await axios.get(`${API_BASE_URL}/patients/`, {
+      headers: {
+        Authorization: `Bearer ${token}`, // Send token in the Authorization header
+      },
+    });
+
+    return response.data; // Return the patient data
+  } catch (error) {
+    console.error("Error fetching patient list", error);
+    throw error; // Propagate the error
   }
 };
 
