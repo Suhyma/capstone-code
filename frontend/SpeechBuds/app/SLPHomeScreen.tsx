@@ -9,7 +9,7 @@ import { Alert } from 'react-native';
 
 
 const HomeScreen = () => {
-
+{/*
   const [patients, setPatients] = useState<any[]>([]);
   const [loading, setLoading] = useState<boolean>(true);  // To show loading state
   const router = useRouter();
@@ -44,7 +44,7 @@ const HomeScreen = () => {
 
     fetchPatients();
   }, []);
-
+*/}
   return (
     <ScrollView style={styles.container}>
       {/* Header */}
