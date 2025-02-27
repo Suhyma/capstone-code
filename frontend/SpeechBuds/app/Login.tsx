@@ -2,6 +2,10 @@ import React, { useState } from "react";
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert } from "react-native";
 import CheckBox from "expo-checkbox";
 import { Link } from "expo-router";
+import { loginUser } from "../services/api";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useRouter } from "expo-router";
+import { AxiosError } from 'axios';
 
 const LoginScreen = () => {
   const [form, setForm] = useState({
@@ -10,16 +14,46 @@ const LoginScreen = () => {
     role: "", // Will store 'Child' or 'SLP'
   });
 
+  const [loading, setLoading] = useState(false); // State for showing loading feedback
+
+  const router = useRouter();
+
   const handleInputChange = (field: string, value: string) => {
     setForm({ ...form, [field]: value });
   };
 
-  const handleLogin = () => {
+  const handleLogin = async () => {
     if (!form.username || !form.password || !form.role) {
       Alert.alert("Error", "Please fill in all fields and select a role.");
       return;
     }
-    console.log("User Logged In:", form);
+  
+    setLoading(true);
+  
+    try {
+      const response = await loginUser(form.username, form.password);
+  
+      if (response.token) {
+        // If the login is successful, navigate based on the role
+        console.log("Token:", response.token);
+        Alert.alert("Success", "Login successful!");
+  
+        if (form.role === "Child") {
+          await AsyncStorage.setItem('user_role', 'Child');
+          router.push("/ChildHomeScreen");
+        } else if (form.role === "SLP") {
+          await AsyncStorage.setItem('user_role', 'SLP');
+          router.push("/SLPHomeScreen");
+        }
+      }
+    } catch (error) {
+      if (error instanceof AxiosError) {
+        // You can access error.response to see the actual response from the backend
+        Alert.alert("Login Failed", error.response?.data?.detail || "Something went wrong.");
+      } else {
+        Alert.alert("Login Failed", "Something went wrong.");
+      }
+    }
   };
 
   return (
@@ -63,23 +97,14 @@ const LoginScreen = () => {
         </View>
 
         {/* Login Button */}
-        {form.role === "Child" ? (
-          <Link href="/ChildHomeScreen" asChild>
-            <TouchableOpacity style={styles.loginButton} onPress={handleLogin}>
-              <Text style={styles.loginButtonText}>Login</Text>
-            </TouchableOpacity>
-          </Link>
-        ) : form.role === "SLP" ? (
-          <Link href="/SLPHomeScreen" asChild>
-            <TouchableOpacity style={styles.loginButton} onPress={handleLogin}>
-              <Text style={styles.loginButtonText}>Login</Text>
-            </TouchableOpacity>
-          </Link>
-        ) : (
-          <TouchableOpacity style={styles.disabledButton} onPress={handleLogin}>
-            <Text style={styles.loginButtonText}>Login</Text>
-          </TouchableOpacity>
-        )}
+        <TouchableOpacity 
+          style={form.role ? styles.loginButton : styles.disabledButton} 
+          onPress={handleLogin}
+          disabled={loading}
+        >
+          <Text style={styles.loginButtonText}>{loading ? "Logging in..." : "Login"}</Text>
+        </TouchableOpacity>
+
 
         {/* Registration Link */}
         <Text style={styles.registerText}>
