@@ -6,7 +6,10 @@ import { Video, ResizeMode } from 'expo-av';  // ✅ Import ResizeMode
 import { useRoute } from '@react-navigation/native';
 import { useNavigate } from './hooks/useNavigate';
 import { submitAudio } from '../services/api'; // Import your submitAudio function
-
+import { Audio } from 'expo-av';
+import { useEffect } from 'react';
+import { useFocusEffect } from '@react-navigation/native';
+import { useCallback } from 'react';
 
 const { width, height } = Dimensions.get('window');
 
@@ -21,8 +24,23 @@ export default function Record() {
   const [isRecording, setIsRecording] = useState(false);
   const [videoUri, setVideoUri] = useState<string | null>(null);
   const [audioUri, setAudioUri] = useState<string | null>(null); //recording audio library
+  const [audioRecording, setAudioRecording] = useState<Audio.Recording | null>(null);
   const cameraRef = useRef<CameraView>(null);
   const videoRef = useRef<Video | null>(null);  // ✅ Ensure videoRef is not undefined
+
+  // Reset state when leaving the screen
+  useFocusEffect(
+    useCallback(() => {
+      return () => {
+        console.log("Leaving record screen. Resetting state.");
+        setIsRecording(false);
+        setAudioRecording(null);
+        setAudioUri(null);
+        setVideoUri(null);
+      };
+  
+    }, [])
+  );  
 
   if (!permission) {
     return <View />;
@@ -38,34 +56,75 @@ export default function Record() {
   }
 
   async function toggleRecording() {
-    if (!cameraRef.current) return;
-
     if (isRecording) {
       setIsRecording(false);
-      cameraRef.current.stopRecording();
+      if (audioRecording) {
+        await audioRecording.stopAndUnloadAsync();
+        const uri = audioRecording.getURI();
+        setAudioUri(uri);
+        console.log("Recording saved:", uri);
+      }
     } else {
       setIsRecording(true);
       try {
-        const video = await cameraRef.current.recordAsync({
-          maxDuration: 30,
-          //mute: false,
-        });
-        if (video) {
-          //setVideoUri(video.uri);
-          setAudioUri(video.uri); // recording audio
-        } else {
-          console.error("No video returned from camera.");
+        const { status } = await Audio.requestPermissionsAsync();
+        if (status !== 'granted') {
+          console.error("Permission to record audio denied");
+          return;
         }
+  
+        const recording = new Audio.Recording();
+        await recording.prepareToRecordAsync(Audio.RecordingOptionsPresets.HIGH_QUALITY);
+        await recording.startAsync();
+        setAudioRecording(recording);
       } catch (error) {
-        console.error("Error recording video:", error);
-      } finally {
+        console.error("Error starting audio recording:", error);
         setIsRecording(false);
       }
     }
   }
 
+  // USE THIS VERSION TO MAKE THE AUDIO RECORDING FOR FEEDBACK SUBMISSION WORK
+  // async function toggleRecording() {
+  //   if (isRecording) {
+  //     setIsRecording(false);
+  //     if (audioRecording) {
+  //       await audioRecording.stopAndUnloadAsync();
+  //       const uri = audioRecording.getURI();
+  //       if (uri) {
+  //         setAudioUri(uri);
+  //         console.log("Recording saved at:", uri);
+  //       } else {
+  //         console.error("Failed to get recording URI.");
+  //       }
+  //     }
+  //   } else {
+  //     setIsRecording(true);
+  //     try {
+  //       const { status } = await Audio.requestPermissionsAsync();
+  //       if (status !== 'granted') {
+  //         console.error("Permission to record audio denied");
+  //         return;
+  //       }
+  
+  //       const recording = new Audio.Recording();
+  //       await recording.prepareToRecordAsync(Audio.RecordingOptionsPresets.HIGH_QUALITY);
+  //       await recording.startAsync();
+  //       setAudioRecording(recording);
+  //     } catch (error) {
+  //       console.error("Error starting audio recording:", error);
+  //       setIsRecording(false);
+  //     }
+  //   }
+  // }
+  
    // Function to submit audio to the backend and navigate to feedback page
   const sendAudioToBackend = async () => {
+    if (!audioUri) {
+      console.error("No audio file to submit.");
+      return;
+    }
+
     if (audioUri) {
       try {
         const response = await submitAudio(audioUri); // Pass the URI of the recorded audio
@@ -86,6 +145,39 @@ export default function Record() {
       }
     }
   };
+
+  // USE THIS VERSION FOR TAKING THE AUDIO RECORDED ON THE PAGE
+  // const sendAudioToBackend = async () => {
+  //   if (!audioUri) {
+  //     console.error("No audio file to submit.");
+  //     return;
+  //   }
+  
+  //   try {
+  //     console.log("Sending audio to backend:", audioUri);
+  
+  //     // Call the backend API function
+  //     const response = await submitAudio(audioUri);
+  
+  //     // Debug: Check the response structure
+  //     console.log("Backend response:", response);
+  
+  //     // Extract feedback (ensure the response matches backend format)
+  //     const feedbackData = response || { score: 0, message: "No feedback received" };
+  
+  //     // Navigate to Feedback screen with evaluation results
+  //     navigateTo("Feedback", { 
+  //       word, 
+  //       attemptNumber: attempt, 
+  //       score: feedbackData.score, 
+  //       feedback: feedbackData.message 
+  //     });
+  
+  //   } catch (error) {
+  //     console.error("Error submitting audio:", error);
+  //   }
+  // };
+  
 
   return (
     <View style={styles.container}>
@@ -132,6 +224,14 @@ export default function Record() {
           onPress={() => navigateTo("Feedback")}>
           <Text style={styles.text}>Get Feedback</Text>
         </TouchableOpacity>
+
+       {/* USE THIS VERSION OF FEEDBACK BUTTON WHEN FEEDBACK WORKS */}
+      {/* <TouchableOpacity 
+        style={styles.button}
+        onPress={sendAudioToBackend}>
+        <Text style={styles.text}>Get Feedback</Text>
+      </TouchableOpacity> */}
+
 
       </View>
       </View>

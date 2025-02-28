@@ -104,3 +104,28 @@ export const submitAudio = async (audioFileUri: string) => {
     throw error;
   }
 };
+
+// try this version after gallery walk if it works with the full recording workflow, might not need
+// export const submitAudio = async (audioUri: string) => {
+//   try {
+//     const response = await fetch(audioUri);
+//     const blob = await response.blob(); // Convert file to Blob
+
+//     const formData = new FormData();
+//     formData.append("audio", blob, "recording.wav"); // Append as a Blob with filename
+
+//     const uploadResponse = await fetch(`${API_BASE_URL}/submit-audio/`, {
+//       method: "POST",
+//       body: formData,
+//       headers: {
+//         "Content-Type": "multipart/form-data",
+//       },
+//     });
+
+//     return await uploadResponse.json();
+//   } catch (error) {
+//     console.error("Error uploading audio:", error);
+//     throw error;
+//   }
+// };
+
