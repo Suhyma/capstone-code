@@ -89,22 +89,10 @@ export default function Record() {
 
   return (
     <View style={styles.container}>
-      <View style={styles.brownContainer}>
-        {/* Header with Exercise Word and Exit Button */}
-        <View style={styles.header}>
-          <Text style={styles.title}>{word}</Text>
-          <TouchableOpacity
-            style={styles.exitButton}
-            onPress={() => navigateTo("ChildHomeScreen")}
-          >
-            <Text style={styles.exitButtonText}>Exit</Text>
-          </TouchableOpacity>
-        </View>
-
       {/* Camera View */}
-        <View style={styles.cameraContainer}>
-          <CameraView ref={cameraRef} style={styles.camera} facing={facing} />
-        </View>
+      <View style={styles.cameraContainer}>
+        <CameraView ref={cameraRef} style={styles.camera} facing={facing} />
+      </View>
 
 
       {/* Video Thumbnail */}
@@ -128,13 +116,12 @@ export default function Record() {
 
         <TouchableOpacity 
           style={styles.button}
-          //onPress={sendAudioToBackend}>
-          onPress={() => navigateTo("Feedback")}>
+          onPress={sendAudioToBackend}>
           <Text style={styles.text}>Get Feedback</Text>
         </TouchableOpacity>
 
       </View>
-      </View>
+
     </View>
   );
 }
@@ -146,53 +133,9 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
   },
-  brownContainer: {
-    flex: 1,
-    width: width * 0.9,
-    height: height * 0.8,
-    flexDirection: "column",
-    justifyContent: "center",
-    alignItems: "center",
-    backgroundColor: "#D9B382",
-    borderRadius: 10,
-    borderWidth: 2,
-    borderColor: '#684503',
-    overflow: "visible",
-    marginTop: 50,
-    marginBottom: 50,
-  },
-  header: {
-    flex: 1,
-    position: "absolute",
-    top: 0,
-    left: 0,
-    right: 0,
-    flexDirection: "row",
-    justifyContent: "center",
-    alignItems: "center",
-    marginTop: 5,
-  },
-  title: {
-    fontSize: 25,
-    fontWeight: "bold",
-    color: "#432818",
-    textAlign: "center",
-  },
-  exitButton: {
-    position: "absolute",
-    top: 10,
-    right: 15, 
-    backgroundColor: "#5A3E1B",
-    borderRadius: 5,
-    padding: 5,
-  },
-  exitButtonText: {
-    color: "white",
-    fontWeight: "bold",
-  },
   cameraContainer: {
     width: width * 0.8,
-    height: height * 0.8,
+    height: height * 0.7,
     //aspectRatio: 4 / 3,
     backgroundColor: "#D9B382",
     borderRadius: 10,
@@ -203,14 +146,13 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   camera: {
-    flex: 2,
-    width: "100%",
-    height: "100%",
-    borderRadius: 10,
-    //marginTop: 20,
-    //marginBottom: 20,
-    //marginLeft: 20,
-    //marginRight: 20,
+    flex: 1,
+    width: "80%",
+    //height: "60%",
+    marginTop: 20,
+    marginBottom: 20,
+    marginLeft: 20,
+    marginRight: 20,
   },
   message: {
     textAlign: 'center',

@@ -1,7 +1,14 @@
 import React from "react";
 import { View, Text, Image, StyleSheet, TouchableOpacity } from "react-native";
+import { useRoute } from "@react-navigation/native";
+import { useNavigate } from "./hooks/useNavigate";
 
 const FeedbackScreen = () => {
+  const route = useRoute();
+  const { exerciseType, word } = route.params as { exerciseType: string; word: string };
+  const { navigateTo } = useNavigate(); // Get the function
+  const attempt = 0;
+
   return (
     <View style={styles.container}>
       {/* Card Container */}
@@ -11,7 +18,7 @@ const FeedbackScreen = () => {
         <Text style={styles.title}>Good try,{"\n"}you're so close!</Text>
 
         {/* Image Placeholder (User Feedback) */}
-        <Image source={require('../assets/images/SLP.png')} style={styles.faceImage} />
+        <Image source={require('../assets/images/Strawberry.png')} style={styles.faceImage} />
 
         {/* Feedback Text */}
         <Text style={styles.feedbackText}>
@@ -26,8 +33,9 @@ const FeedbackScreen = () => {
 
         {/* Buttons */}
         <View style={styles.buttonContainer}>
-          <TouchableOpacity style={styles.retryButton}>
+          <TouchableOpacity style={styles.retryButton} >
             <Text style={styles.retryText}>retry word</Text>
+            onPress={() => navigateTo("Record", { word: word, attemptNumber: attempt })}
           </TouchableOpacity>
 
           <TouchableOpacity style={styles.nextButton}>

@@ -1,11 +1,7 @@
 import React, { useState } from "react";
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert } from "react-native";
 import CheckBox from "expo-checkbox";
-import { Link } from "expo-router";
-import { loginUser } from "../services/api";
-import AsyncStorage from "@react-native-async-storage/async-storage";
-import { useRouter } from "expo-router";
-import { AxiosError } from 'axios';
+import { useRouter, Link } from "expo-router";
 
 const LoginScreen = () => {
   const [form, setForm] = useState({
@@ -22,46 +18,27 @@ const LoginScreen = () => {
     console.log(`Updated ${field}: ${value}`);
   };
 
-  const handleLogin = async () => {
+  const handleLogin = () => {
     if (!form.username || !form.password || !form.role) {
       Alert.alert("Error", "Please fill in all fields and select a role.");
       return;
     }
 
     setLoading(true);
-    try {
-      console.log("Attempting login with:", form.username, form.password, form.role);
-      const response = await loginUser(form.username, form.password);
-      
-      if (response.token) {
-        console.log("Token received:", response.token);
-        await AsyncStorage.setItem('access_token', response.token);
-        await AsyncStorage.setItem('user_role', form.role);
-        
-        Alert.alert("Success", "Login successful!");
-        console.log("Navigating to role-based screen:", form.role);
+    console.log("Logging in with:", form.username, form.password, form.role);
 
-        // Ensure navigation based on role
-        if (form.role === "Child") {
-          console.log("Navigating to ChildHomeScreen");
-          router.push("/ChildHomeScreen");
-          setTimeout(() => router.push("/ChildHomeScreen"), 500); // Manual navigation fallback
-        } else if (form.role === "SLP") {
-          console.log("Navigating to SLPHomeScreen");
-          router.push("/SLPHomeScreen");
-          setTimeout(() => router.push("/SLPHomeScreen"), 500); // Manual navigation fallback
-        }
-      }
-    } catch (error) {
-      setLoading(false);
-      if (error instanceof AxiosError) {
-        console.log('Login AxiosError:', error.response);
-        Alert.alert("Login Failed", error.response?.data?.detail || "Something went wrong.");
-      } else {
-        console.log('Login Error:', error);
-        Alert.alert("Login Failed", "Something went wrong.");
-      }
+    // Navigate based on the selected role
+    if (form.role === "Child") {
+      console.log("Navigating to ChildHomeScreen");
+      router.push("/ChildHomeScreen");
+    } else if (form.role === "SLP") {
+      console.log("Navigating to SLPHomeScreen");
+      router.replace("/SLPHomeScreen");
+    } else {
+      Alert.alert("Error", "Invalid role selected.");
     }
+
+    setLoading(false);
   };
 
   return (
@@ -112,7 +89,6 @@ const LoginScreen = () => {
         >
           <Text style={styles.loginButtonText}>{loading ? "Logging in..." : "Login"}</Text>
         </TouchableOpacity>
-
 
         {/* Registration Link */}
         <Text style={styles.registerText}>
@@ -165,7 +141,6 @@ const styles = StyleSheet.create({
     width: "100%",
     marginVertical: 10,
   },
-
   checkboxRow: {
     flexDirection: "row",
     alignItems: "center",

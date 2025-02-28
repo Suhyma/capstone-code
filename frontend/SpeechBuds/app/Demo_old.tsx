@@ -1,6 +1,6 @@
 import React, { useRef, useState } from "react";
 import { View, Text, StyleSheet, Dimensions, TouchableOpacity } from "react-native";
-import { Video, ResizeMode } from "expo-av";
+import { Video, ResizeMode, AVPlaybackStatusSuccess, AVPlaybackStatus } from "expo-av";
 import { useNavigate } from "./hooks/useNavigate";
 import { useRoute } from "@react-navigation/native";
 
@@ -11,60 +11,47 @@ const DemoScreen = () => {
   const { navigateTo } = useNavigate();
   const route = useRoute();
   const { exerciseType, word } = route.params as { exerciseType: string; word: string };
-  const attempt = 0;
+  const attempt = 0; // TODO: RETRIEVE THE ATTEMPT NO. FROM THE STATUS OR SOMEWHERE EVENTUALLY, max. 3 attempts for recording
 
-  const videoRef = useRef<Video>(null);
-
-  // 🎥 Video Mapping
-  const videoMapping: { [key: string]: any } = {
-    Summer: require("../assets/images/Summer.mp4"),
-    //Stain: require("../assets/images/Stain.mp4"),
-    //Silly: require("../assets/images/Silly.mp4"),
-    //Sock: require("../assets/images/Sock.mp4"),
-    //Say: require("../assets/images/Say.mp4"),
-    Carrot: require("../assets/images/Carrot.mp4"),
-    //Berry: require("../assets/images/Berry.mp4"),
-    //Corn: require("../assets/images/Corn.mp4"),
-    //Arrow: require("../assets/images/Arrow.mp4"),
-    //Parent: require("../assets/images/Parent.mp4"),
-  };
-
-  // Select video based on `word`, default to a placeholder
-  const selectedVideo = videoMapping[word] || require("../assets/images/default.mp4");
+  const video = useRef<Video>(null);
+  const [status, setStatus] = useState<any>(null);
+  const videoRef = React.useRef<Video>(null);
 
   return (
     <View style={styles.container}>
+      
       <View style={styles.brownContainer}>
-        {/* Header with Exercise Word and Exit Button */}
+
+        {/*Header with Exercise Word and Exit Button */}
         <View style={styles.header}>
           <Text style={styles.title}>{word}</Text>
           <TouchableOpacity
             style={styles.exitButton}
-            onPress={() => navigateTo("ChildHomeScreen")}
-          >
+            onPress={() => navigateTo("ChildHomeScreen")}>
             <Text style={styles.exitButtonText}>Exit</Text>
           </TouchableOpacity>
         </View>
+        
 
-        {/* Video Container */}
+        {/* Video Container (Fixed Aspect Ratio & Scaling) */}
         <View style={styles.videoContainer}>
           <Video
             ref={videoRef}
-            source={selectedVideo} // 🎥 Dynamically update video source
+            source={require("../assets/images/Summer.mp4")} // Ensure correct video path
             useNativeControls
-            resizeMode={ResizeMode.COVER}
+            resizeMode={ResizeMode.COVER} // Ensures no cropping
             shouldPlay
-            style={styles.video}
+            style={[styles.video]}
           />
         </View>
 
         {/* Start Exercise Button */}
         <TouchableOpacity
           style={styles.startButton}
-          onPress={() => navigateTo("Record", { word: word, attemptNumber: attempt })}
-        >
+          onPress={() => navigateTo("Record",  { word: word, attemptNumber: attempt})}>
           <Text style={styles.startButtonText}>Start Exercise</Text>
         </TouchableOpacity>
+
       </View>
     </View>
   );
@@ -129,6 +116,7 @@ const styles = StyleSheet.create({
     position: "absolute",
     top: 50,
     left: 90,
+
   },
   video: {
     flex: 2,

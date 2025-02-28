@@ -5,10 +5,13 @@ import axios from "axios";  // Importing axios for API requests
 import { getPatientList } from "../services/api";  // Assuming this function handles the API call
 import AsyncStorage from "@react-native-async-storage/async-storage";  // For token storage
 import { useRouter } from "expo-router";
-import { Alert } from 'react-native';  
-
+import { Alert } from 'react-native';
+import { StackNavigationProp } from '@react-navigation/stack';
+import { useNavigation } from '@react-navigation/native';  
+import { useNavigate } from "./hooks/useNavigate";
 
 const HomeScreen = () => {
+  const { navigateTo } = useNavigate();
 {/*
   const [patients, setPatients] = useState<any[]>([]);
   const [loading, setLoading] = useState<boolean>(true);  // To show loading state
@@ -50,6 +53,9 @@ const HomeScreen = () => {
       {/* Header */}
       <View style={styles.header}>
         <Text style={styles.welcomeText}>WELCOME BACK, SARAH!</Text>
+        <TouchableOpacity style={styles.signOutButton} onPress={() => navigateTo("Login")}>
+          <Text style={styles.signOutText}>Sign Out</Text>
+        </TouchableOpacity>
       </View>
 
       {/* Notifications Section */}
@@ -119,14 +125,33 @@ const styles = StyleSheet.create({
     padding: 16,
   },
   header: {
-    marginBottom: 24,
+    marginBottom: 25,
+    flex: 1,
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
   },
   welcomeText: {
     fontSize: 24,
     fontWeight: "bold",
     color: "#684503",
   },
+  signOutButton: {
+    backgroundColor: "#684503",
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    borderRadius: 5,
+  },
+  signOutText: {
+    color: "white",
+    fontWeight: "bold",
+  },
   section: {
+    marginTop: 40,
     marginBottom: 24,
   },
   sectionTitle: {
