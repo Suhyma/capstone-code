@@ -1,53 +1,10 @@
-import React, {useState, useEffect} from "react";
+import React from "react";
 import { View, Text, ScrollView, StyleSheet, TouchableOpacity } from "react-native";
-import {Link} from 'expo-router';
-import axios from "axios";  // Importing axios for API requests
-import { getPatientList } from "../services/api";  // Assuming this function handles the API call
-import AsyncStorage from "@react-native-async-storage/async-storage";  // For token storage
-import { useRouter } from "expo-router";
-import { Alert } from 'react-native';
-import { StackNavigationProp } from '@react-navigation/stack';
-import { useNavigation } from '@react-navigation/native';  
 import { useNavigate } from "./hooks/useNavigate";
 
 const HomeScreen = () => {
   const { navigateTo } = useNavigate();
-{/*
-  const [patients, setPatients] = useState<any[]>([]);
-  const [loading, setLoading] = useState<boolean>(true);  // To show loading state
-  const router = useRouter();
 
-  useEffect(() => {
-    const fetchPatients = async () => {
-      try {
-        // Retrieve the token from AsyncStorage
-        const token = await AsyncStorage.getItem('token');
-        if (!token) {
-          // If there's no token, redirect to login
-          router.push('/Login');
-          return;
-        }
-
-        // Fetch the patient data from the backend using the token
-        const response = await axios.get("http://127.0.0.1:8000/api/patients/", {
-          headers: {
-            Authorization: `Bearer ${token}`,  // Adding the token to the Authorization header
-          },
-        });
-
-        // Set the patients data in the state
-        setPatients(response.data);
-        setLoading(false);
-      } catch (error) {
-        console.error("Error fetching patient data", error);
-        Alert.alert("Error", "Failed to fetch patient data.");
-        setLoading(false);
-      }
-    };
-
-    fetchPatients();
-  }, []);
-*/}
   return (
     <ScrollView style={styles.container}>
       {/* Header */}
@@ -64,7 +21,7 @@ const HomeScreen = () => {
         <View style={styles.notificationCard}>
           <Text style={styles.notificationTitle}>Adam's weekly exercises report is now available</Text>
           <Text style={styles.notificationSubtitle}>5/5 assigned exercises completed</Text>
-          <TouchableOpacity>
+          <TouchableOpacity onPress={() => navigateTo("Clients")}>
             <Text style={styles.linkText}>see more</Text>
           </TouchableOpacity>
         </View>
@@ -73,7 +30,7 @@ const HomeScreen = () => {
           <Text style={styles.notificationSubtitle}>
             "R" sound exercises not completed by due date Nov 20, 2024
           </Text>
-          <TouchableOpacity>
+          <TouchableOpacity onPress={() => navigateTo("Clients")}>
             <Text style={styles.linkText}>see more</Text>
           </TouchableOpacity>
         </View>
@@ -82,7 +39,6 @@ const HomeScreen = () => {
       {/* My Clients Section */}
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>MY CLIENTS</Text>
-        
         <View style={styles.clientsRow}>
           <View style={styles.clientCard}>
             <Text style={styles.clientName}>Sarah Grey</Text>
@@ -106,12 +62,15 @@ const HomeScreen = () => {
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>EXERCISES</Text>
         <View style={styles.exercisesRow}>
-          <View style={styles.exerciseCard}>
+          {/* "R" Exercise Button */}
+          <TouchableOpacity style={styles.exerciseCard} onPress={() => navigateTo("Exercises")}>
             <Text style={styles.exerciseText}>R</Text>
-          </View>
-          <View style={styles.exerciseCard}>
+          </TouchableOpacity>
+
+          {/* "S" Exercise Button */}
+          <TouchableOpacity style={styles.exerciseCard} onPress={() => navigateTo("Exercises")}>
             <Text style={styles.exerciseText}>S</Text>
-          </View>
+          </TouchableOpacity>
         </View>
       </View>
     </ScrollView>
@@ -122,15 +81,10 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#FAF3DD",
-    padding: 16,
+    padding: 20,
   },
   header: {
     marginBottom: 25,
-    flex: 1,
-    position: "absolute",
-    top: 0,
-    left: 0,
-    right: 0,
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
@@ -165,7 +119,7 @@ const styles = StyleSheet.create({
     padding: 16,
     borderRadius: 8,
     marginBottom: 12,
-    width: '50%', // Makes the card occupy 80% of the parent container's width
+    width: "50%",
   },
   notificationTitle: {
     fontSize: 16,

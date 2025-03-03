@@ -8,6 +8,8 @@ import Demo from './Demo';
 import Feedback from './Feedback';
 import Record from './Record';
 import SLPHomeScreen from './SLPHomeScreen';
+import Clients from './Clients';
+import Exercises from './Exercises';
 
 const Stack = createStackNavigator<StackParamList>();
 
@@ -22,6 +24,8 @@ export default function App() {
         <Stack.Screen name="Demo" component={Demo} options={{ title: 'Example Video' }} />
         <Stack.Screen name="Record" component={Record} options={{ title: 'Record' }} />
         <Stack.Screen name="Feedback" component={Feedback} options={{ title: 'Feedback' }} />
+        <Stack.Screen name="Clients" component={Clients} options={{ title: 'Clients'}} />
+        <Stack.Screen name="Exercises" component={Exercises} options={{ title: 'Exercises'}} />
       </Stack.Navigator>
     </NavigationContainer>
   );
