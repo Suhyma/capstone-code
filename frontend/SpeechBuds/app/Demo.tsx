@@ -10,7 +10,9 @@ const { width, height } = Dimensions.get("window");
 const DemoScreen = () => {
   const { navigateTo } = useNavigate();
   const route = useRoute();
-  const { exerciseType, word } = route.params as { exerciseType: string; word: string };
+  
+  const { wordSet, currentIndex } = route.params as { wordSet: string[], currentIndex: number };
+  const currentWord = wordSet[currentIndex]
   const attempt = 0;
 
   const videoRef = useRef<Video>(null);
@@ -30,14 +32,14 @@ const DemoScreen = () => {
   };
 
   // Select video based on `word`, default to a placeholder
-  const selectedVideo = videoMapping[word] || require("../assets/images/default.mp4");
+  const selectedVideo = videoMapping[currentWord] || require("../assets/images/default.mp4");
 
   return (
     <View style={styles.container}>
       <View style={styles.brownContainer}>
         {/* Header with Exercise Word and Exit Button */}
         <View style={styles.header}>
-          <Text style={styles.title}>{word}</Text>
+          <Text style={styles.title}>Let's say the word: {currentWord}</Text>
           <TouchableOpacity
             style={styles.exitButton}
             onPress={() => navigateTo("ChildHomeScreen")}
@@ -61,7 +63,7 @@ const DemoScreen = () => {
         {/* Start Exercise Button */}
         <TouchableOpacity
           style={styles.startButton}
-          onPress={() => navigateTo("Record", { word: word, attemptNumber: attempt })}
+          onPress={() => navigateTo("Record", { wordSet: wordSet, currentIndex: currentIndex, attemptNumber: attempt })}
         >
           <Text style={styles.startButtonText}>Start Exercise</Text>
         </TouchableOpacity>

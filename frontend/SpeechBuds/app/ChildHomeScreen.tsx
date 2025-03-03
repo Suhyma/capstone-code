@@ -29,7 +29,7 @@ const ChildHomeScreen = () => {
             <TouchableOpacity
               key={index}
               style={styles.taskCard}
-              onPress={() => navigateTo("Demo", { exerciseType: task.title, word: task.words[task.wordCount]})}
+              onPress={() => navigateTo("Demo", { wordSet: task.words, currentIndex: 0})}
             >
               <Text style={styles.taskTitle}>{task.title}</Text>
               <Text style={styles.taskDetails}>Due Date: {task.dueDate}</Text>

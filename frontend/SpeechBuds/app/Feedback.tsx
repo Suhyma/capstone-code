@@ -1,8 +1,16 @@
 import React from "react";
 import { View, Text, Image, StyleSheet, TouchableOpacity } from "react-native";
+import { useNavigate } from "./hooks/useNavigate";
+import { useRoute } from "@react-navigation/native";
 
 const FeedbackScreen = () => {
+  const { navigateTo } = useNavigate(); // Get the function
+  const route = useRoute();
+  const { wordSet, currentIndex, attemptNumber } = route.params as { wordSet: string[], currentIndex: number, attemptNumber: number};
+
+
   return (
+    
     <View style={styles.container}>
       {/* Card Container */}
       <View style={styles.card}>
@@ -26,11 +34,18 @@ const FeedbackScreen = () => {
 
         {/* Buttons */}
         <View style={styles.buttonContainer}>
-          <TouchableOpacity style={styles.retryButton}>
+          <TouchableOpacity 
+            style={styles.retryButton}
+            onPress={() => navigateTo("Record", { wordSet: wordSet, currentIndex: currentIndex, attemptNumber: attemptNumber })}
+          >
             <Text style={styles.retryText}>retry word</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity style={styles.nextButton}>
+          <TouchableOpacity 
+            style={styles.nextButton}
+            onPress={() => navigateTo("Demo", { wordSet: wordSet, currentIndex: currentIndex+1 })}
+
+          >
             <Text style={styles.nextText}>next word</Text>
           </TouchableOpacity>
         </View>

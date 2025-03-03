@@ -16,8 +16,10 @@ const { width, height } = Dimensions.get('window');
 export default function Record() {
   const { navigateTo } = useNavigate();
   const route = useRoute();
-  const { word, attempt, feedback } = route.params as { word: string, attempt: number, feedback: string};;  
+  const { wordSet, currentIndex, attemptNumber } = route.params as { wordSet: string[], currentIndex: number, attemptNumber: number}; 
+  const currentWord = wordSet[currentIndex] 
   const score = 0; // placeholder before backend scoring is connected
+  const feedback = "" // placeholder before backend feedback is connected
 
   const [facing, setFacing] = useState<CameraType>('front');
   const [permission, requestPermission] = useCameraPermissions();
@@ -134,9 +136,11 @@ export default function Record() {
         const feedback = response; // Adjust according to the response structure from the backend
 
         // Navigate to feedback page with word, attempt, score, and feedback message
+        // { wordSet: string[], currentIndex: number, attemptNumber: number, score: number, feedback: string }
         navigateTo("Feedback", { 
-          word: word, 
-          attemptNumber: attempt, 
+          wordSet: wordSet, 
+          currentIndex: currentIndex,
+          attemptNumber: attemptNumber, 
           score: feedback.score, 
           feedback: feedback.message 
         });
@@ -184,7 +188,7 @@ export default function Record() {
       <View style={styles.brownContainer}>
         {/* Header with Exercise Word and Exit Button */}
         <View style={styles.header}>
-          <Text style={styles.title}>{word}</Text>
+          <Text style={styles.title}>{currentWord}</Text>
           <TouchableOpacity
             style={styles.exitButton}
             onPress={() => navigateTo("ChildHomeScreen")}
@@ -220,8 +224,8 @@ export default function Record() {
 
         <TouchableOpacity 
           style={styles.button}
-          //onPress={sendAudioToBackend}>
-          onPress={() => navigateTo("Feedback")}>
+          //onPress={sendAudioToBackend}> below sends 0 for score and "" for feedback by default atm
+          onPress={() => navigateTo("Feedback", { wordSet: wordSet, currentIndex: currentIndex, attemptNumber: attemptNumber, score: score, feedback: feedback } )}> 
           <Text style={styles.text}>Get Feedback</Text>
         </TouchableOpacity>
 
