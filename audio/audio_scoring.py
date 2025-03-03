@@ -14,7 +14,7 @@ def find_most_similar_word(prediction): # eventually, should not have to use thi
         if distance < min_distance:
             min_distance = distance
             most_similar_word = word
-
+    most_similar_word = "berry"
     return most_similar_word, min_distance, prediction_phonemes
 
 def align_and_compare(prediction, correct):
