@@ -7,7 +7,7 @@ from audio_feedback import generate_feedback_for_target
 # step 1: record audio TODO: implementation of this with the frontend
 
 # step 2: extract phonemes
-predicted_phonemes = extract_phonemes("data/test/insulators.wav")
+predicted_phonemes = extract_phonemes("data/panel_exam_demo/belly.wav")
 print(predicted_phonemes)
 
 # step 3: give score
