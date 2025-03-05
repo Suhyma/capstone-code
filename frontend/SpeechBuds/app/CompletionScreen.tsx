@@ -1,23 +1,13 @@
-import React, { useState } from "react";
+import React from "react";
 import { View, Text, Image, StyleSheet, TouchableOpacity } from "react-native";
 import { useNavigate } from "./hooks/useNavigate";
 import { useRoute } from "@react-navigation/native";
 
-const FeedbackScreen = () => {
+const CompletionScreen = () => {
   const { navigateTo } = useNavigate();
   const route = useRoute();
-  const { wordSet, currentIndex, attemptNumber } = route.params as { wordSet: string[], currentIndex: number, attemptNumber: number};
+  const { overallScore, seedsCollected } = route.params as { overallScore: number, seedsCollected: number };
 
-  const [isExerciseComplete, setIsExerciseComplete] = useState(false)
-  const isLastWord = currentIndex >= wordSet.length - 1;
-
-  const handleNextWord = () => {
-    if (isLastWord) {
-      navigateTo("CompletionScreen", { overallScore: 75, seedsCollected: 8 });  // placeholder values until backend is fully connected
-    } else {
-      navigateTo("Demo", { wordSet: wordSet, currentIndex: currentIndex + 1 });
-    }
-  };
 
   return (
     
@@ -26,37 +16,38 @@ const FeedbackScreen = () => {
       <View style={styles.card}>
 
         {/* Title */}
-        <Text style={styles.title}>Good try,{"\n"}you're so close!</Text>
+        <Text style={styles.title}>Mission complete, well done!</Text>
 
         {/* Image Placeholder (User Feedback) */}
         <Image source={require('../assets/images/SLP.png')} style={styles.faceImage} />
 
         {/* Feedback Text */}
         <Text style={styles.feedbackText}>
-          Try separating your lips a little without making an ‘o’ shape.
+          Your score is {overallScore}.
         </Text>
 
         {/* Tip Section */}
         <Text style={styles.tipText}>
           <Text style={styles.boldText}>Tip: </Text>
-          Keep your teeth close together with your tongue tips slightly hovering.
+          You get {seedsCollected} seeds!
         </Text>
 
         {/* Buttons */}
         <View style={styles.buttonContainer}>
           <TouchableOpacity 
             style={styles.retryButton}
-            onPress={() => navigateTo("Record", { wordSet: wordSet, currentIndex: currentIndex, attemptNumber: attemptNumber })}
+            onPress={() => navigateTo("ChildHomeScreen")}
           >
-            <Text style={styles.retryText}>retry word</Text>
+            {/* to lead to game page eventually: */}
+            <Text style={styles.retryText}>plant seeds!</Text> 
           </TouchableOpacity>
 
           <TouchableOpacity 
             style={styles.nextButton}
-            onPress={handleNextWord}
+            onPress={() => navigateTo("ChildHomeScreen")}
 
           >
-            <Text style={styles.nextText}>{isLastWord ? "finish exercise" : "next word"}</Text>
+            <Text style={styles.nextText}>return home</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -155,4 +146,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default FeedbackScreen;
+export default CompletionScreen;

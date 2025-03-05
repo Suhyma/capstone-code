@@ -7,4 +7,5 @@ export type StackParamList = {
   Demo: { wordSet: string[], currentIndex: number};
   Record: { wordSet: string[], currentIndex: number, attemptNumber: number}; // want to give them max 3 tries for a word
   Feedback: { wordSet: string[], currentIndex: number, attemptNumber: number, score: number, feedback: string };
+  CompletionScreen: { overallScore: number, seedsCollected: number };
 };

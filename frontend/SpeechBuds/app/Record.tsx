@@ -50,6 +50,18 @@ export default function Record() {
     );
   }
 
+  // Play the audio
+  const playAudio = async () => {
+    if (audioUri) {
+      const { sound } = await Audio.Sound.createAsync(
+        { uri: audioUri },
+        { shouldPlay: true }
+      );
+      await sound.playAsync();
+    }
+  };
+
+
   const toggleRecording = async () => {
     if (isButtonDisabled) return; // preventing spam clicks that cause errors by temporarily disabling 
     setIsButtonDisabled(true);
@@ -149,10 +161,10 @@ export default function Record() {
       {videoUri && (
         <TouchableOpacity style={styles.thumbnailContainer} onPress={() => videoRef.current?.presentFullscreenPlayer()}>
           <Video
-            ref={(ref) => (videoRef.current = ref)}  // ✅ Ensure videoRef is set properly
+            ref={(ref) => (videoRef.current = ref)} 
             source={{ uri: videoUri }}
             style={styles.thumbnail}
-            resizeMode={ResizeMode.COVER}  // ✅ Correct usage
+            resizeMode={ResizeMode.COVER}
             shouldPlay={false}
           />
         </TouchableOpacity>
@@ -169,6 +181,14 @@ export default function Record() {
           //onPress={sendAudioToBackend}> below sends 0 for score and "" for feedback by default atm
           onPress={() => navigateTo("Feedback", { wordSet: wordSet, currentIndex: currentIndex, attemptNumber: attemptNumber, score: score, feedback: feedback } )}> 
           <Text style={styles.text}>Get Feedback</Text>
+        </TouchableOpacity>
+
+        
+        <TouchableOpacity 
+          style={styles.button}
+          //onPress={sendAudioToBackend}> below sends 0 for score and "" for feedback by default atm
+          onPress={playAudio}> 
+          <Text style={styles.text}>Play Audio</Text>
         </TouchableOpacity>
 
        {/* USE THIS VERSION OF FEEDBACK BUTTON WHEN FEEDBACK WORKS */}
