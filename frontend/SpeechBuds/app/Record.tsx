@@ -183,13 +183,13 @@ export default function Record() {
           <Text style={styles.text}>Get Feedback</Text>
         </TouchableOpacity>
 
-        
-        <TouchableOpacity 
+        {/* just testing out the audio playback capabilities */}
+        {/* <TouchableOpacity 
           style={styles.button}
           //onPress={sendAudioToBackend}> below sends 0 for score and "" for feedback by default atm
           onPress={playAudio}> 
           <Text style={styles.text}>Play Audio</Text>
-        </TouchableOpacity>
+        </TouchableOpacity> */}
 
        {/* USE THIS VERSION OF FEEDBACK BUTTON WHEN FEEDBACK WORKS */}
       {/* <TouchableOpacity 
