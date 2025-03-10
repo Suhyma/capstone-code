@@ -2,6 +2,8 @@ from rest_framework import serializers
 from .models import AudioFile, Patient, Score
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Group
+from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
+
 
 # audio model serializer
 class AudioFileSerializer(serializers.ModelSerializer):
@@ -31,6 +33,19 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
 class UserLoginSerializer(serializers.Serializer):
     username = serializers.CharField()
     password = serializers.CharField()
+
+# Token serializer
+class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
+    @classmethod
+    def get_token(cls, user):
+        token = super().get_token(user)
+        token['role'] = user.role  # Role is added inside the token payload
+        return token
+
+    def validate(self, attrs):
+        data = super().validate(attrs)
+        data['role'] = self.user.role  # This makes 'role' appear in the JSON response
+        return data
 
 # Score serializer
 class ScoreSerializer(serializers.ModelSerializer):

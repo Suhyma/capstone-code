@@ -2,8 +2,8 @@ import axios from 'axios';
 import { AxiosError } from "axios";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
-const API_URL = 'https://8bb3-2620-101-f000-7c0-00-1-30eb.ngrok-free.app/api/register/';  // backend registration URL
-const API_BASE_URL = "https://8bb3-2620-101-f000-7c0-00-1-30eb.ngrok-free.app/api"; // Change if using a different URL
+const API_URL = 'https://631c-2620-101-f000-7c0-00-70eb.ngrok-free.app/api/register/';  // backend registration URL
+const API_BASE_URL = "https://631c-2620-101-f000-7c0-00-70eb.ngrok-free.app/api"; // Change if using a different URL
 
 
 // Function to handle user registration
@@ -27,30 +27,11 @@ export const loginUser = async (username: string, password: string) => {
     const response = await axios.post(`${API_BASE_URL}/token/`, {
       username,
       password,
-    }, {
-      headers: {
-        'Content-Type': 'application/json',
-      },
     });
-
-    console.log("Login API Response:", response.data); // Log response for debugging
-
-    const { access, refresh } = response.data;
-
-    if (!access || !refresh) {
-      throw new Error("Invalid response from server");
-    }
-
-    await AsyncStorage.setItem('access_token', access);
-    await AsyncStorage.setItem('refresh_token', refresh);
-
-    return { token: access };
+    return response.data; // This will return the access token, refresh token, and role
   } catch (error) {
     console.error('Login error:', error);
-    if (axios.isAxiosError(error)) {
-      console.error('Response data:', error.response?.data);
-    }
-    throw error;
+    throw error; // Or handle error appropriately
   }
 };
 

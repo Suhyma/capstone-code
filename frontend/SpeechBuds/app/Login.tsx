@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert } from "react-native";
 import CheckBox from "expo-checkbox";
 import { useRouter, Link } from "expo-router";
+import { loginUser } from "../services/api";
 
 const LoginScreen = () => {
   const [form, setForm] = useState({
@@ -18,7 +19,7 @@ const LoginScreen = () => {
     console.log(`Updated ${field}: ${value}`);
   };
 
-  const handleLogin = () => {
+  const handleLogin = async () => {
     if (!form.username || !form.password || !form.role) {
       Alert.alert("Error", "Please fill in all fields and select a role.");
       return;
@@ -27,15 +28,30 @@ const LoginScreen = () => {
     setLoading(true);
     console.log("Logging in with:", form.username, form.password, form.role);
 
-    // Navigate based on the selected role
-    if (form.role === "Child") {
-      console.log("Navigating to ChildHomeScreen");
-      router.push("/ChildHomeScreen");
-    } else if (form.role === "SLP") {
-      console.log("Navigating to SLPHomeScreen");
-      router.replace("/SLPHomeScreen");
-    } else {
-      Alert.alert("Error", "Invalid role selected.");
+    try {
+      // Call the API to login the user
+      const data = await loginUser(form.username, form.password);
+
+      // Extract the role from the response
+      const { access, role } = data;
+      console.log('Access Token:', access);
+      console.log('Role:', role);
+
+      // Store the tokens (this is a simple example, you may want to use AsyncStorage or Context API)
+      // Example: Store the access token for future requests
+      // AsyncStorage.setItem("access_token", access);
+
+      // Navigate based on the role
+      if (role === "SLP") {
+        router.replace("/SLPHomeScreen");
+      } else if (role === "Patient") {
+        router.replace("/ChildHomeScreen");
+      } else {
+        Alert.alert("Error", "Invalid role.");
+      }
+    } catch (err) {
+      Alert.alert("Login Failed", "Invalid credentials or network issue.");
+      console.error(err);
     }
 
     setLoading(false);

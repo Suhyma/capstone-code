@@ -4,7 +4,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status, permissions
-from .serializers import AudioFileSerializer, PatientSerializer, ScoreSerializer, UserRegistrationSerializer, UserLoginSerializer
+from .serializers import AudioFileSerializer, PatientSerializer, ScoreSerializer, UserRegistrationSerializer, UserLoginSerializer, CustomTokenObtainPairSerializer
 from .models import AudioFile, Patient, Score
 from rest_framework import generics
 from rest_framework.generics import ListAPIView
@@ -16,6 +16,7 @@ from rest_framework.permissions import IsAuthenticated
 from .permissions import IsSLP, IsPatientOrSLP, IsPatient
 from rest_framework.parsers import MultiPartParser, FormParser
 from django.http import JsonResponse
+from rest_framework_simplejwt.views import TokenObtainPairView
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..")))
 
@@ -83,6 +84,9 @@ def login_user(request):
                 return Response({"message": "Login successful!"}, status=status.HTTP_200_OK)
             return Response({"message": "Invalid credentials!"}, status=status.HTTP_400_BAD_REQUEST)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+class CustomTokenObtainPairView(TokenObtainPairView):
+    serializer_class = CustomTokenObtainPairSerializer
 
 # uploading audio
 @api_view(['POST'])
