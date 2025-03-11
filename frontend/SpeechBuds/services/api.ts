@@ -2,8 +2,8 @@ import axios from 'axios';
 import { AxiosError } from "axios";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
-const API_URL = 'https://631c-2620-101-f000-7c0-00-70eb.ngrok-free.app/api/register/';  // backend registration URL
-const API_BASE_URL = "https://631c-2620-101-f000-7c0-00-70eb.ngrok-free.app/api"; // Change if using a different URL
+const API_URL = 'https://714a-24-114-29-182.ngrok-free.app/api/register/';  // backend registration URL
+const API_BASE_URL = "https://714a-24-114-29-182.ngrok-free.app/api"; // Change if using a different URL
 
 
 // Function to handle user registration
@@ -64,27 +64,37 @@ export const getPatientList = async () => {
 
 // Function to handle submission of audio file (when user presses "Get Feedback")
 export const submitAudio = async (audioFileUri: string) => {
-  const formData = new FormData();
-  formData.append("audio_file", {
-    uri: audioFileUri,
-    name: "recording.wav", // Adjust name if needed
-    type: "audio/wav", // Adjust type based on actual format
-  } as any); // `as any` is used to avoid TypeScript type issues
-
   try {
-    const response = await axios.post(`${API_BASE_URL}/submit-audio/`, formData, {
+    // Retrieve the access token
+    const token = await AsyncStorage.getItem("access_token");
+    if (!token) {
+      throw new Error("No access token found.");
+    }
+
+    // Create FormData
+    const formData = new FormData();
+    formData.append("audio_file", {
+      uri: audioFileUri,
+      name: "recording.wav",  // File name
+      type: "audio/wav",       // MIME type
+    } as any);  // Type assertion needed for TypeScript compatibility
+
+    // Send the request
+    const response = await axios.post(`${API_BASE_URL}/submit_audio/`, formData, {
       headers: {
         "Content-Type": "multipart/form-data",
+        Authorization: `Bearer ${token}`, // Token included in header
       },
-      withCredentials: true, // Ensures authentication cookies are sent
     });
 
-    return response.data;
+    console.log("Upload success:", response.data);
+    return response.data; // Return feedback data
   } catch (error) {
     console.error("Error uploading audio:", error);
     throw error;
   }
 };
+
 
 // try this version after gallery walk if it works with the full recording workflow, might not need
 // export const submitAudio = async (audioUri: string) => {
