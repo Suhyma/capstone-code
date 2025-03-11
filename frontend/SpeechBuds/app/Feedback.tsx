@@ -46,7 +46,7 @@ const FeedbackScreen = () => {
         <View style={styles.buttonContainer}>
           <TouchableOpacity 
             style={styles.retryButton}
-            onPress={() => navigateTo("Record", { wordSet: wordSet, currentIndex: currentIndex, attemptNumber: attemptNumber })}
+            onPress={() => navigateTo("Record_CV", { wordSet: wordSet, currentIndex: currentIndex, attemptNumber: attemptNumber })}
           >
             <Text style={styles.retryText}>retry word</Text>
           </TouchableOpacity>

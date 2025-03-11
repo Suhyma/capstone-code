@@ -36,6 +36,13 @@ const ChildHomeScreen = () => {
               <Text style={styles.taskDetails}>Seeds Available: {task.seeds}</Text>
             </TouchableOpacity>
           ))}
+
+            <TouchableOpacity
+              style={styles.plantingButton}
+              onPress={() => navigateTo("GardenGame")}
+            >
+              <Text style={styles.plantingButtonText}>Let's plant your garden!</Text>
+            </TouchableOpacity>
         </ScrollView>
       </View>
     </View>
@@ -93,6 +100,18 @@ const styles = StyleSheet.create({
   taskDetails: {
     fontSize: 14,
     color: "#444",
+  },
+  plantingButton: {
+    position: "absolute",
+    top: 10,
+    right: 15, 
+    backgroundColor: "#5A3E1B",
+    borderRadius: 5,
+    padding: 5,
+  },
+  plantingButtonText: {
+    color: "white",
+    fontWeight: "bold",
   },
 });
 
