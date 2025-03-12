@@ -33,9 +33,15 @@ const DemoScreen = () => {
 
   // Select video based on `word`, default to a placeholder
   const selectedVideo = videoMapping[currentWord] || require("../assets/images/default.mp4");
+  const progressWidth = ((currentIndex + 1) * (width/5));
 
   return (
     <View style={styles.container}>
+       {/* Progress Bar */}
+      <View style={styles.progressBarContainer}>
+        <View style={[styles.progressBar, { width: progressWidth }]} />
+      </View>
+
       <View style={styles.brownContainer}>
         {/* Header with Exercise Word and Exit Button */}
         <View style={styles.header}>
@@ -81,6 +87,20 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     padding: 50,
+  },
+  progressBarContainer: {
+    position: "absolute",
+    top: 10,
+    left: 0,
+    width: width * 0.9,
+    height: 6,
+    backgroundColor: "#D9B382",
+    borderRadius: 3,
+    overflow: "hidden",
+  },
+  progressBar: {
+    height: "100%",
+    backgroundColor: "#684503",
   },
   brownContainer: {
     flex: 1,
