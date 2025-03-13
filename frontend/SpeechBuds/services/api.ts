@@ -2,8 +2,8 @@ import axios from 'axios';
 import { AxiosError } from "axios";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
-const API_URL = 'https://c043-2620-101-f000-7c0-00-1-30eb.ngrok-free.app/api/register/';  // backend registration URL
-const API_BASE_URL = "https://c043-2620-101-f000-7c0-00-1-30eb.ngrok-free.app/api"; // Change if using a different URL
+const API_URL = 'https://e919-72-138-72-162.ngrok-free.app/api/register/';  // backend registration URL
+const API_BASE_URL = "https://e919-72-138-72-162.ngrok-free.app/api"; // Change if using a different URL
 
 
 // Function to handle user registration
@@ -63,34 +63,25 @@ export const getPatientList = async () => {
 };
 
 // Function to handle submission of audio file (when user presses "Get Feedback")
-export const submitAudio = async (audioFileUri: string) => {
+export const submitAudio = async (audioUri: string, token: string) => {
+  const formData = new FormData();
+  
+  // Convert URI to Blob
+  const response = await fetch(audioUri);
+  const blob = await response.blob(); // Convert URI to Blob
+
+  formData.append("audio_file", blob, "recording.mp3"); // Attach as file
+
   try {
-    // Retrieve the access token
-    const token = await AsyncStorage.getItem("access_token");
-    if (!token) {
-      throw new Error("No access token found.");
-    }
-
-    // Create FormData
-    const formData = new FormData();
-    formData.append("audio_file", {
-      uri: audioFileUri,
-      name: "recording.wav",  // File name
-      type: "audio/wav",       // MIME type
-    } as any);  // Type assertion needed for TypeScript compatibility
-
-    // Send the request
-    const response = await axios.post(`${API_BASE_URL}/submit_audio/`, formData, {
+    const res = await axios.post(`${API_BASE_URL}/submit_audio/`, formData, {
       headers: {
         "Content-Type": "multipart/form-data",
-        Authorization: `Bearer ${token}`, // Token included in header
+        Authorization: `Bearer ${token}`, // Change this to 'Bearer ${token}'
       },
     });
-
-    console.log("Upload success:", response.data);
-    return response.data; // Return feedback data
+    return res.data;
   } catch (error) {
-    console.error("Error uploading audio:", error);
+    console.error("Error submitting audio:", error);
     throw error;
   }
 };
