@@ -7,6 +7,7 @@ import { useNavigate } from './hooks/useNavigate';
 import { submitAudio } from '../services/api'; 
 import { Audio } from 'expo-av';
 import { Switch } from 'react-native';
+import VideoViewComponent from './VideoViewComponent';
 
 const { width, height } = Dimensions.get('window');
 
@@ -50,7 +51,9 @@ export default function Record() {
       </View>
     );
   }
-
+  
+  if (videoUri) return <VideoViewComponent video={videoUri} setVideo={setVideoUri} />; // eventually modify this to be just in the corner
+  
   // Play the audio
   const playAudio = async () => {
     if (audioUri) {
@@ -61,52 +64,69 @@ export default function Record() {
       await sound.playAsync();
     }
   };
-
-
-  const toggleRecording = async () => {
-    if (isButtonDisabled) return; // preventing spam clicks that cause errors by temporarily disabling 
-    setIsButtonDisabled(true);
-
-    try {
-      if (isRecording) {
-        setIsRecording(false);
-        if (audioRecording) {
-          await audioRecording.stopAndUnloadAsync();
-          const uri = audioRecording.getURI();
-          if (uri) {
-            setAudioUri(uri);
-            console.log("Recording saved at:", uri);
-          }
-          setAudioRecording(null);
-        }
-      } else {
-        if (audioRecording) {
-          console.warn("Cleaning up previous recording...");
-          await audioRecording.stopAndUnloadAsync();
-          setAudioRecording(null);
-        }
-
-        setIsRecording(true);
-
-        const { status } = await Audio.requestPermissionsAsync();
-        if (status !== 'granted') {
-          console.error("Permission to record audio denied");
-          return;
-        }
-
-        const recording = new Audio.Recording();
-        await recording.prepareToRecordAsync(Audio.RecordingOptionsPresets.HIGH_QUALITY);
-        await recording.startAsync();
-        setAudioRecording(recording);
-      }
-    } catch (error) {
-      console.error("Error during recording:", error);
-      setIsRecording(false);
-    }
   
-    // enable button after a short delay
-    setTimeout(() => setIsButtonDisabled(false), 1);
+  async function toggleRecording() {
+    if (isRecording) {
+      cameraRef.current?.stopRecording();
+      setIsRecording(false);
+    } else {
+      setIsRecording(true)
+      const response = await cameraRef.current?.recordAsync({maxDuration: 20});
+      setVideoUri(response!.uri);
+    }
   }
+
+
+  // const toggleRecording = async () => {
+  //   if (isButtonDisabled) return; // preventing spam clicks that cause errors by temporarily disabling 
+  //   setIsButtonDisabled(true);
+
+  //   await Audio.setAudioModeAsync({
+  //       allowsRecordingIOS: true, // ✅ Enable recording
+  //       staysActiveInBackground: false,
+  //       interruptionModeIOS: 1,
+  //     });
+
+  //   try {
+  //     if (isRecording) {
+  //       setIsRecording(false);
+  //       if (audioRecording) {
+  //         await audioRecording.stopAndUnloadAsync();
+  //         const uri = audioRecording.getURI();
+  //         if (uri) {
+  //           setAudioUri(uri);
+  //           console.log("Recording saved at:", uri);
+  //         }
+  //         setAudioRecording(null);
+  //       }
+  //     } else {
+  //       if (audioRecording) {
+  //         console.warn("Cleaning up previous recording...");
+  //         await audioRecording.stopAndUnloadAsync();
+  //         setAudioRecording(null);
+  //       }
+
+  //       setIsRecording(true);
+
+  //       const { status } = await Audio.requestPermissionsAsync();
+  //       if (status !== 'granted') {
+  //         console.error("Permission to record audio denied");
+  //         return;
+  //       }
+
+  //       const recording = new Audio.Recording();
+  //       await recording.prepareToRecordAsync(Audio.RecordingOptionsPresets.HIGH_QUALITY);
+  //       await recording.startAsync();
+  //       setAudioRecording(recording);
+  //     }
+  //   } catch (error) {
+  //     console.error("Error during recording:", error);
+  //     setIsRecording(false);
+  //   }
+  
+  //   // enable button after a short delay
+  //   setTimeout(() => setIsButtonDisabled(false), 1);
+  // }
   
    // Function to submit audio to the backend and navigate to feedback page
   const sendAudioToBackend = async () => {
