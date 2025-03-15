@@ -12,11 +12,13 @@ import axios from 'axios';
 
 const { width, height } = Dimensions.get('window');
 
+
 export default function Record() {
   const { navigateTo } = useNavigate();
   const route = useRoute();
   const { wordSet, currentIndex, attemptNumber } = route.params as { wordSet: string[], currentIndex: number, attemptNumber: number}; 
   const currentWord = wordSet[currentIndex];
+  const attempt = 0;
   const score = 0; // placeholder before backend scoring is connected
   const feedback = ""; // placeholder before backend feedback is connected
 
@@ -227,8 +229,15 @@ export default function Record() {
     }
   };
 
+  const progressWidth = ((currentIndex + 1) * (width/5));
+
   return (
     <View style={styles.container}>
+
+      <View style={styles.progressBarContainer}>
+        <View style={[styles.progressBar, { width: progressWidth }]} />
+      </View>
+
       <View style={styles.brownContainer}>
         {/* Header with Exercise Word and Exit Button */}
         <View style={styles.header}>
@@ -338,6 +347,20 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     color: "#432818",
     textAlign: "center",
+  },
+  progressBarContainer: {
+    position: "absolute",
+    top: 10,
+    left: 0,
+    width: width * 0.9,
+    height: 6,
+    backgroundColor: "#D9B382",
+    borderRadius: 3,
+    overflow: "hidden",
+  },
+  progressBar: {
+    height: "100%",
+    backgroundColor: "#684503",
   },
   exitButton: {
     position: "absolute",

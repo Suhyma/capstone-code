@@ -71,7 +71,7 @@ const DemoScreen = () => {
           style={styles.startButton}
           onPress={() => navigateTo("Record", { wordSet: wordSet, currentIndex: currentIndex, attemptNumber: attempt })}
         >
-          <Text style={styles.startButtonText}>Start Exercise</Text>
+          <Text style={styles.startButtonText}>Start</Text>
         </TouchableOpacity>
       </View>
     </View>

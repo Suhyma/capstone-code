@@ -1,21 +1,25 @@
 import { CameraView, CameraType, useCameraPermissions } from 'expo-camera';
-import { useRef, useState, useEffect } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Button, StyleSheet, Text, TouchableOpacity, View, Dimensions, Image } from 'react-native';
 import { Video, ResizeMode } from 'expo-av';
 import { useRoute } from '@react-navigation/native';
 import { useNavigate } from './hooks/useNavigate';
 import { submitAudio } from '../services/api'; 
 import { Audio } from 'expo-av';
-import { Switch } from 'react-native';
 import VideoViewComponent from './VideoViewComponent';
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import axios from 'axios';
+import { Switch } from 'react-native';
 
 const { width, height } = Dimensions.get('window');
+
 
 export default function Record() {
   const { navigateTo } = useNavigate();
   const route = useRoute();
   const { wordSet, currentIndex, attemptNumber } = route.params as { wordSet: string[], currentIndex: number, attemptNumber: number}; 
   const currentWord = wordSet[currentIndex];
+  const attempt = 0;
   const score = 0; // placeholder before backend scoring is connected
   const feedback = ""; // placeholder before backend feedback is connected
 
@@ -23,7 +27,7 @@ export default function Record() {
   const [permission, requestPermission] = useCameraPermissions();
   const [isRecording, setIsRecording] = useState(false);
   const [videoUri, setVideoUri] = useState<string | null>(null);
-  const [audioUri, setAudioUri] = useState<string | null>(null); //recording audio library
+  const [audioUri, setAudioUri] = useState<string | null>(null);
   const [audioRecording, setAudioRecording] = useState<Audio.Recording | null>(null);
   const [isButtonDisabled, setIsButtonDisabled] = useState(false);
   const [showComputerVision, setShowComputerVision] = useState(false); // Toggle state
@@ -31,14 +35,34 @@ export default function Record() {
   const cameraRef = useRef<CameraView>(null);
   const videoRef = useRef<Video | null>(null); 
 
-  useEffect(() => { // this resets state when leaving the screen (not unmounting like useFocusEffect)
-    console.log("New word selected. Resetting state.");
-    setIsRecording(false);
-    setAudioRecording(null);
-    setAudioUri(null);
-    setVideoUri(null);
+ useEffect(() => {
+  const requestPermissions = async () => {
+    if (permission?.granted) return; // Don't request if already granted
+
+    console.log("Requesting camera and microphone permissions...");
+
+    // Request camera permissions
+    await requestPermission();
+
+    // Request microphone permissions
+    const { status: micStatus } = await Audio.requestPermissionsAsync();
+    if (micStatus !== 'granted') {
+      console.error("Microphone permission denied");
+    }
+  };
+
+  requestPermissions();
+
+  // reset state when a new word is selected
+  console.log("New word selected. Resetting state.");
+  setIsRecording(false);
+  setAudioRecording(null);
+  setAudioUri(null);
+  // setVideoUri(null); // remove this after testing video view component
   }, [currentIndex]);
+
   
+
   if (!permission) {
     return <View />;
   }
@@ -51,10 +75,10 @@ export default function Record() {
       </View>
     );
   }
-  
+
   if (videoUri) return <VideoViewComponent video={videoUri} setVideo={setVideoUri} />; // eventually modify this to be just in the corner
-  
-  // Play the audio
+
+  // Play the audio for testing
   const playAudio = async () => {
     if (audioUri) {
       const { sound } = await Audio.Sound.createAsync(
@@ -64,7 +88,7 @@ export default function Record() {
       await sound.playAsync();
     }
   };
-  
+
   async function toggleRecording() {
     if (isRecording) {
       cameraRef.current?.stopRecording();
@@ -76,44 +100,72 @@ export default function Record() {
     }
   }
 
-
   // const toggleRecording = async () => {
-  //   if (isButtonDisabled) return; // preventing spam clicks that cause errors by temporarily disabling 
-  //   setIsButtonDisabled(true);
+  //   // if (isButtonDisabled) return; // preventing spam clicks that cause errors by temporarily disabling 
+  //   // setIsButtonDisabled(true);
 
   //   await Audio.setAudioModeAsync({
-  //       allowsRecordingIOS: true, // ✅ Enable recording
-  //       staysActiveInBackground: false,
-  //       interruptionModeIOS: 1,
-  //     });
+  //     allowsRecordingIOS: true, // ✅ Enable recording
+  //     staysActiveInBackground: false,
+  //     interruptionModeIOS: 1,
+  //   });
 
   //   try {
-  //     if (isRecording) {
+  //     if (isRecording) { // stop recording options if we just pressed "record"
   //       setIsRecording(false);
+
+  //       if (cameraRef.current) {
+  //         cameraRef.current?.stopRecording(); // Stop video recording
+  //       }
+  
   //       if (audioRecording) {
   //         await audioRecording.stopAndUnloadAsync();
-  //         const uri = audioRecording.getURI();
-  //         if (uri) {
-  //           setAudioUri(uri);
-  //           console.log("Recording saved at:", uri);
+  //         const audioUri = audioRecording.getURI();
+  //         if (audioUri) {
+  //           setAudioUri(audioUri);
+  //           console.log("Recording saved at:", audioUri);
   //         }
   //         setAudioRecording(null);
   //       }
   //     } else {
   //       if (audioRecording) {
+  //         // resetting the recording state from previous uses
   //         console.warn("Cleaning up previous recording...");
   //         await audioRecording.stopAndUnloadAsync();
   //         setAudioRecording(null);
   //       }
 
   //       setIsRecording(true);
-
+        
+  //       // req mic permission
   //       const { status } = await Audio.requestPermissionsAsync();
   //       if (status !== 'granted') {
   //         console.error("Permission to record audio denied");
   //         return;
   //       }
 
+  //       // starting video recording
+  //       if (cameraRef.current) {
+  //         try {
+  //           console.log("Starting video recording...");
+            
+  //           const videoResponse = await cameraRef.current?.recordAsync({});
+  //           console.log(videoResponse?.uri)
+  //           setVideoUri(videoResponse!.uri)
+  //           //   onRecordingFinished: (video) => {
+  //           //     console.log("Video recorded:", video);
+  //           //     setVideoUri(video.filePath);  // Save the video URI
+  //           //   },
+  //           //   onRecordingError: (error) => {
+  //           //     console.error("Recording error:", error);
+  //           //   },
+  //           // });
+  //         } catch (error) {
+  //           console.error("Error while recording video:", error);
+  //         }
+  //       }
+
+  //       // starting audio recording
   //       const recording = new Audio.Recording();
   //       await recording.prepareToRecordAsync(Audio.RecordingOptionsPresets.HIGH_QUALITY);
   //       await recording.startAsync();
@@ -129,41 +181,69 @@ export default function Record() {
   // }
   
    // Function to submit audio to the backend and navigate to feedback page
-  const sendAudioToBackend = async () => {
+   const sendAudioToBackend = async () => {
     if (!audioUri) {
       console.error("No audio file to submit.");
       return;
     }
-
-    if (audioUri) {
-      try {
-        const response = await submitAudio(audioUri); // Pass the URI of the recorded audio
-        console.log(response); // You can check the response structure here
-        
-        // Extract feedback data (e.g., score and message) from the response
-        const feedback = response; // Adjust according to the response structure from the backend
-
-        // Navigate to feedback page with word, attempt, score, and feedback message
-        // { wordSet: string[], currentIndex: number, attemptNumber: number, score: number, feedback: string }
-        navigateTo("Feedback", { 
-          wordSet: wordSet, 
-          currentIndex: currentIndex,
-          attemptNumber: attemptNumber, 
-          score: feedback.score, 
-          feedback: feedback.message 
-        });
-      } catch (error) {
-        console.error("Error submitting audio:", error);
+  
+    try {
+      // Fetch the audio file from the URI and convert it to a Blob
+      const fetchResponse = await fetch(audioUri); // Renamed 'response' to 'fetchResponse'
+      const blob = await fetchResponse.blob(); // Converts URI to Blob
+  
+      // Create a new FormData object and append the audio file
+      const formData = new FormData();
+      formData.append("audio_file", blob, "recording.m4a"); // 'recording.m4a' is the filename
+  
+      // Get the access token from AsyncStorage
+      const token = await AsyncStorage.getItem("accessToken");
+  
+      // Send the request to your backend
+      const axiosResponse = await axios.post( // Renamed 'response' to 'axiosResponse'
+        "https://207f-2620-101-f000-7c0-00-c0eb.ngrok-free.app/api/submit_audio/",
+        formData,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+  
+      console.log("API Response:", axiosResponse.data);
+  
+      // Navigate to the feedback screen with the response data
+      navigateTo("Feedback", { 
+        wordSet, 
+        currentIndex, 
+        attemptNumber, 
+        score: axiosResponse.data?.score || 0, 
+        feedback: axiosResponse.data?.feedback || "", 
+      });
+    } catch (error: unknown) { // Explicitly typing 'error' as 'unknown'
+      // Checking if the error is an AxiosError and then extracting data
+      if (axios.isAxiosError(error)) {
+        console.error("Axios error submitting audio:", error.response?.data || error.message);
+      } else {
+        console.error("Unexpected error submitting audio:", error);
       }
     }
   };
 
+  const progressWidth = ((currentIndex + 1) * (width/5));
+
   return (
     <View style={styles.container}>
+
+      <View style={styles.progressBarContainer}>
+        <View style={[styles.progressBar, { width: progressWidth }]} />
+      </View>
+
       <View style={styles.brownContainer}>
         {/* Header with Exercise Word and Exit Button */}
         <View style={styles.header}>
-          <Text style={styles.title}>{currentWord}</Text>
+          <Text style={styles.title}>Your turn! Try saying the word: {currentWord}</Text>
           <TouchableOpacity
             style={styles.exitButton}
             onPress={() => navigateTo("ChildHomeScreen")}
@@ -188,24 +268,30 @@ export default function Record() {
           </View>
         )}
 
+
       {/* Camera View */}
         <View style={styles.cameraContainer}>
-          <CameraView ref={cameraRef} style={styles.camera} facing={facing} />
+          <CameraView ref={cameraRef} style={styles.camera} mode="video" facing={facing} />
         </View>
 
 
       {/* Video Thumbnail */}
+      
       {videoUri && (
-        <TouchableOpacity style={styles.thumbnailContainer} onPress={() => videoRef.current?.presentFullscreenPlayer()}>
+        <TouchableOpacity 
+          style={styles.thumbnailContainer} 
+          onPress={() => videoRef.current?.presentFullscreenPlayer()}
+        >
           <Video
             ref={(ref) => (videoRef.current = ref)} 
             source={{ uri: videoUri }}
             style={styles.thumbnail}
             resizeMode={ResizeMode.COVER}
-            shouldPlay={false}
+            useNativeControls
           />
         </TouchableOpacity>
       )}
+
 
       {/* Buttons */}
       <View style={styles.buttonContainer}>
@@ -215,8 +301,8 @@ export default function Record() {
 
         <TouchableOpacity 
           style={styles.button}
-          //onPress={sendAudioToBackend}> below sends 0 for score and "" for feedback by default atm
-          onPress={() => navigateTo("Feedback", { wordSet: wordSet, currentIndex: currentIndex, attemptNumber: attemptNumber, score: score, feedback: feedback } )}> 
+          onPress={sendAudioToBackend}  // Call sendAudioToBackend here to submit the audio
+        >
           <Text style={styles.text}>Get Feedback</Text>
         </TouchableOpacity>
 
@@ -280,6 +366,20 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     color: "#432818",
     textAlign: "center",
+  },
+  progressBarContainer: {
+    position: "absolute",
+    top: 10,
+    left: 0,
+    width: width * 0.9,
+    height: 6,
+    backgroundColor: "#D9B382",
+    borderRadius: 3,
+    overflow: "hidden",
+  },
+  progressBar: {
+    height: "100%",
+    backgroundColor: "#684503",
   },
   exitButton: {
     position: "absolute",
