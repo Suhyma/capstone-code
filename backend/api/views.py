@@ -9,7 +9,7 @@ from .models import AudioFile, Patient, Score
 from rest_framework import generics
 from rest_framework.generics import ListAPIView
 from django.contrib.auth import authenticate
-from rest_framework.decorators import api_view
+from rest_framework.decorators import api_view, authentication_classes, permission_classes
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib import messages
 from rest_framework.permissions import IsAuthenticated
@@ -90,17 +90,20 @@ class CustomTokenObtainPairView(TokenObtainPairView):
 
 # uploading audio
 @api_view(['POST'])
+@authentication_classes([])  # Disable authentication
+@permission_classes([])  # Disable permissions
 def submit_audio(request):
     """
     Endpoint for patients to submit their recorded audio for processing.
     """
     parser_classes = [MultiPartParser]
 
+    print(request.FILES)  # Debugging line to see what files are being uploaded
     if 'audio_file' not in request.FILES:
         return JsonResponse({'error': 'No audio file provided'}, status=400)
 
     audio_file = request.FILES['audio_file']
-    audio_instance = AudioFile.objects.create(user=request.user, file=audio_file)
+    audio_instance = AudioFile.objects.create(file=audio_file)
 
     try:
         

@@ -7,6 +7,8 @@ import { useNavigate } from './hooks/useNavigate';
 import { submitAudio } from '../services/api'; 
 import { Audio } from 'expo-av';
 import { useEffect } from 'react';
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import axios from 'axios';
 
 const { width, height } = Dimensions.get('window');
 
@@ -108,31 +110,52 @@ export default function Record() {
   }
   
    // Function to submit audio to the backend and navigate to feedback page
-  const sendAudioToBackend = async () => {
+   const sendAudioToBackend = async () => {
     if (!audioUri) {
       console.error("No audio file to submit.");
       return;
     }
-
-    if (audioUri) {
-      try {
-        const response = await submitAudio(audioUri); // Pass the URI of the recorded audio
-        console.log(response); // You can check the response structure here
-        
-        // Extract feedback data (e.g., score and message) from the response
-        const feedback = response; // Adjust according to the response structure from the backend
-
-        // Navigate to feedback page with word, attempt, score, and feedback message
-        // { wordSet: string[], currentIndex: number, attemptNumber: number, score: number, feedback: string }
-        navigateTo("Feedback", { 
-          wordSet: wordSet, 
-          currentIndex: currentIndex,
-          attemptNumber: attemptNumber, 
-          score: feedback.score, 
-          feedback: feedback.message 
-        });
-      } catch (error) {
-        console.error("Error submitting audio:", error);
+  
+    try {
+      // Fetch the audio file from the URI and convert it to a Blob
+      const fetchResponse = await fetch(audioUri); // Renamed 'response' to 'fetchResponse'
+      const blob = await fetchResponse.blob(); // Converts URI to Blob
+  
+      // Create a new FormData object and append the audio file
+      const formData = new FormData();
+      formData.append("audio_file", blob, "recording.m4a"); // 'recording.m4a' is the filename
+  
+      // Get the access token from AsyncStorage
+      const token = await AsyncStorage.getItem("accessToken");
+  
+      // Send the request to your backend
+      const axiosResponse = await axios.post( // Renamed 'response' to 'axiosResponse'
+        "https://207f-2620-101-f000-7c0-00-c0eb.ngrok-free.app/api/submit_audio/",
+        formData,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+  
+      console.log("API Response:", axiosResponse.data);
+  
+      // Navigate to the feedback screen with the response data
+      navigateTo("Feedback", { 
+        wordSet, 
+        currentIndex, 
+        attemptNumber, 
+        score: axiosResponse.data?.score || 0, 
+        feedback: axiosResponse.data?.feedback || "", 
+      });
+    } catch (error: unknown) { // Explicitly typing 'error' as 'unknown'
+      // Checking if the error is an AxiosError and then extracting data
+      if (axios.isAxiosError(error)) {
+        console.error("Axios error submitting audio:", error.response?.data || error.message);
+      } else {
+        console.error("Unexpected error submitting audio:", error);
       }
     }
   };
@@ -178,8 +201,8 @@ export default function Record() {
 
         <TouchableOpacity 
           style={styles.button}
-          //onPress={sendAudioToBackend}> below sends 0 for score and "" for feedback by default atm
-          onPress={() => navigateTo("Feedback", { wordSet: wordSet, currentIndex: currentIndex, attemptNumber: attemptNumber, score: score, feedback: feedback } )}> 
+          onPress={sendAudioToBackend}  // Call sendAudioToBackend here to submit the audio
+        >
           <Text style={styles.text}>Get Feedback</Text>
         </TouchableOpacity>
 

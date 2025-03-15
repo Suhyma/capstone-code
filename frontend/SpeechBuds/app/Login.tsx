@@ -3,6 +3,8 @@ import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert } from "reac
 import CheckBox from "expo-checkbox";
 import { useRouter, Link } from "expo-router";
 import { loginUser } from "../services/api";
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
 
 const LoginScreen = () => {
   const [form, setForm] = useState({
@@ -39,7 +41,7 @@ const LoginScreen = () => {
 
       // Store the tokens (this is a simple example, you may want to use AsyncStorage or Context API)
       // Example: Store the access token for future requests
-      // AsyncStorage.setItem("access_token", access);
+      AsyncStorage.setItem("access_token", access);
 
       // Navigate based on the role
       if (role === "SLP") {
