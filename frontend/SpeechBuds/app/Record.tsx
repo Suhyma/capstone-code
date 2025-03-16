@@ -6,7 +6,6 @@ import { useRoute } from '@react-navigation/native';
 import { useNavigate } from './hooks/useNavigate';
 import { submitAudio } from '../services/api'; 
 import { Audio } from 'expo-av';
-import VideoViewComponent from './VideoViewComponent';
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import axios from 'axios';
 
@@ -26,8 +25,8 @@ export default function Record() {
   const [permission, requestPermission] = useCameraPermissions();
   const [isRecording, setIsRecording] = useState(false);
   const [videoUri, setVideoUri] = useState<string | null>(null);
-  const [audioUri, setAudioUri] = useState<string | null>(null);
-  const [audioRecording, setAudioRecording] = useState<Audio.Recording | null>(null);
+  // const [audioUri, setAudioUri] = useState<string | null>(null);
+  // const [audioRecording, setAudioRecording] = useState<Audio.Recording | null>(null);
   const [isButtonDisabled, setIsButtonDisabled] = useState(false);
   
   const cameraRef = useRef<CameraView>(null);
@@ -54,12 +53,11 @@ export default function Record() {
   // reset state when a new word is selected
   console.log("New word selected. Resetting state.");
   setIsRecording(false);
-  setAudioRecording(null);
-  setAudioUri(null);
+  // setAudioRecording(null);
+  // setAudioUri(null);
   // setVideoUri(null); // remove this after testing video view component
   }, [currentIndex]);
 
-  
 
   if (!permission) {
     return <View />;
@@ -74,18 +72,16 @@ export default function Record() {
     );
   }
 
-  if (videoUri) return <VideoViewComponent video={videoUri} setVideo={setVideoUri} />; // eventually modify this to be just in the corner
-
   // Play the audio for testing
-  const playAudio = async () => {
-    if (audioUri) {
-      const { sound } = await Audio.Sound.createAsync(
-        { uri: audioUri },
-        { shouldPlay: true }
-      );
-      await sound.playAsync();
-    }
-  };
+  // const playAudio = async () => {
+  //   if (audioUri) {
+  //     const { sound } = await Audio.Sound.createAsync(
+  //       { uri: audioUri },
+  //       { shouldPlay: true }
+  //     );
+  //     await sound.playAsync();
+  //   }
+  // };
 
   async function toggleRecording() {
     if (isRecording) {
@@ -97,97 +93,17 @@ export default function Record() {
       setVideoUri(response!.uri);
     }
   }
-
-  // const toggleRecording = async () => {
-  //   // if (isButtonDisabled) return; // preventing spam clicks that cause errors by temporarily disabling 
-  //   // setIsButtonDisabled(true);
-
-  //   await Audio.setAudioModeAsync({
-  //     allowsRecordingIOS: true, // ✅ Enable recording
-  //     staysActiveInBackground: false,
-  //     interruptionModeIOS: 1,
-  //   });
-
-  //   try {
-  //     if (isRecording) { // stop recording options if we just pressed "record"
-  //       setIsRecording(false);
-
-  //       if (cameraRef.current) {
-  //         cameraRef.current?.stopRecording(); // Stop video recording
-  //       }
-  
-  //       if (audioRecording) {
-  //         await audioRecording.stopAndUnloadAsync();
-  //         const audioUri = audioRecording.getURI();
-  //         if (audioUri) {
-  //           setAudioUri(audioUri);
-  //           console.log("Recording saved at:", audioUri);
-  //         }
-  //         setAudioRecording(null);
-  //       }
-  //     } else {
-  //       if (audioRecording) {
-  //         // resetting the recording state from previous uses
-  //         console.warn("Cleaning up previous recording...");
-  //         await audioRecording.stopAndUnloadAsync();
-  //         setAudioRecording(null);
-  //       }
-
-  //       setIsRecording(true);
-        
-  //       // req mic permission
-  //       const { status } = await Audio.requestPermissionsAsync();
-  //       if (status !== 'granted') {
-  //         console.error("Permission to record audio denied");
-  //         return;
-  //       }
-
-  //       // starting video recording
-  //       if (cameraRef.current) {
-  //         try {
-  //           console.log("Starting video recording...");
-            
-  //           const videoResponse = await cameraRef.current?.recordAsync({});
-  //           console.log(videoResponse?.uri)
-  //           setVideoUri(videoResponse!.uri)
-  //           //   onRecordingFinished: (video) => {
-  //           //     console.log("Video recorded:", video);
-  //           //     setVideoUri(video.filePath);  // Save the video URI
-  //           //   },
-  //           //   onRecordingError: (error) => {
-  //           //     console.error("Recording error:", error);
-  //           //   },
-  //           // });
-  //         } catch (error) {
-  //           console.error("Error while recording video:", error);
-  //         }
-  //       }
-
-  //       // starting audio recording
-  //       const recording = new Audio.Recording();
-  //       await recording.prepareToRecordAsync(Audio.RecordingOptionsPresets.HIGH_QUALITY);
-  //       await recording.startAsync();
-  //       setAudioRecording(recording);
-  //     }
-  //   } catch (error) {
-  //     console.error("Error during recording:", error);
-  //     setIsRecording(false);
-  //   }
-  
-  //   // enable button after a short delay
-  //   setTimeout(() => setIsButtonDisabled(false), 1);
-  // }
   
    // Function to submit audio to the backend and navigate to feedback page
    const sendAudioToBackend = async () => {
-    if (!audioUri) {
+    if (!videoUri) {
       console.error("No audio file to submit.");
       return;
     }
   
     try {
       // Fetch the audio file from the URI and convert it to a Blob
-      const fetchResponse = await fetch(audioUri); // Renamed 'response' to 'fetchResponse'
+      const fetchResponse = await fetch(videoUri);
       const blob = await fetchResponse.blob(); // Converts URI to Blob
   
       // Create a new FormData object and append the audio file
@@ -198,7 +114,7 @@ export default function Record() {
       const token = await AsyncStorage.getItem("accessToken");
   
       // Send the request to your backend
-      const axiosResponse = await axios.post( // Renamed 'response' to 'axiosResponse'
+      const axiosResponse = await axios.post(
         "https://207f-2620-101-f000-7c0-00-c0eb.ngrok-free.app/api/submit_audio/",
         formData,
         {
@@ -294,15 +210,6 @@ export default function Record() {
           onPress={playAudio}> 
           <Text style={styles.text}>Play Audio</Text>
         </TouchableOpacity> */}
-
-       {/* USE THIS VERSION OF FEEDBACK BUTTON WHEN FEEDBACK WORKS */}
-      {/* <TouchableOpacity 
-        style={styles.button}
-        onPress={sendAudioToBackend}>
-        <Text style={styles.text}>Get Feedback</Text>
-      </TouchableOpacity> */}
-
-
       </View>
       </View>
     </View>
