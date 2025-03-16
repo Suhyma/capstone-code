@@ -3,10 +3,12 @@ import { View, Text, Image, StyleSheet, TouchableOpacity } from "react-native";
 import { useNavigate } from "./hooks/useNavigate";
 import { useRoute } from "@react-navigation/native";
 
+
+
 const FeedbackScreen = () => {
   const { navigateTo } = useNavigate();
   const route = useRoute();
-  const { wordSet, currentIndex, attemptNumber } = route.params as { wordSet: string[], currentIndex: number, attemptNumber: number};
+  const { wordSet, currentIndex, attemptNumber, feedback } = route.params as { wordSet: string[], currentIndex: number, attemptNumber: number, feedback: string};
 
   const [isExerciseComplete, setIsExerciseComplete] = useState(false)
   const isLastWord = currentIndex >= wordSet.length - 1;
@@ -33,14 +35,15 @@ const FeedbackScreen = () => {
 
         {/* Feedback Text */}
         <Text style={styles.feedbackText}>
-          Try separating your lips a little without making an ‘o’ shape.
+          {/* Try separating your lips a little without making an ‘o’ shape. */}
+          {feedback}
         </Text>
 
-        {/* Tip Section */}
+        {/* Tip Section
         <Text style={styles.tipText}>
           <Text style={styles.boldText}>Tip: </Text>
           Keep your teeth close together with your tongue tips slightly hovering.
-        </Text>
+        </Text> */}
 
         {/* Buttons */}
         <View style={styles.buttonContainer}>
