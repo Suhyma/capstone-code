@@ -1,0 +1,9 @@
+{
+  "dependencies": {
+    "@ffmpeg/core": "^0.12.10",
+    "@ffmpeg/ffmpeg": "^0.12.15",
+    "eslint-plugin-react-hooks": "^5.1.0",
+    "expo-camera": "^16.0.18",
+    "expo-screen-orientation": "~8.0.4"
+  }
+}

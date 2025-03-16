@@ -28,7 +28,7 @@ const HomeScreen = () => {
         <View style={styles.notificationCard}>
           <Text style={styles.notificationTitle}>Sam's assigned exercise update</Text>
           <Text style={styles.notificationSubtitle}>
-            "R" sound exercises not completed by due date Nov 20, 2024
+            "R" sound exercises not completed by due date Mar 19, 2025
           </Text>
           <TouchableOpacity onPress={() => navigateTo("Clients")}>
             <Text style={styles.linkText}>see more</Text>

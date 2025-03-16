@@ -27,7 +27,7 @@ const ClientDetailsScreen: React.FC = () => {
         <View>
           <Text>Age: 8 years old</Text>
           <Text>Start date: Nov 5, 2024</Text>
-          <Text>Treatment Length: 3 months</Text>
+          <Text>Treatment Length: 6 months</Text>
         </View>
       </View>
 

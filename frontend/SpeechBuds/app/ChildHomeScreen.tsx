@@ -17,6 +17,12 @@ const ChildHomeScreen = () => {
           <Text style={styles.emoji}>🌽🌽🌽🌽</Text>
           <Text style={styles.emoji}>🌸🌸🌸🌸</Text>
           <Text style={styles.emoji}>🍓🍓🍓🍓</Text>
+          <TouchableOpacity
+              style={styles.plantingButton}
+              onPress={() => navigateTo("GardenGame")}
+            >
+              <Text style={styles.plantingButtonText}>Let's plant your garden!</Text>
+            </TouchableOpacity>
         </View>
       </View>
 
@@ -36,22 +42,21 @@ const ChildHomeScreen = () => {
               <Text style={styles.taskDetails}>Seeds Available: {task.seeds}</Text>
             </TouchableOpacity>
           ))}
-
-            <TouchableOpacity
-              style={styles.plantingButton}
-              onPress={() => navigateTo("GardenGame")}
-            >
-              <Text style={styles.plantingButtonText}>Let's plant your garden!</Text>
-            </TouchableOpacity>
         </ScrollView>
       </View>
+
+      <TouchableOpacity 
+        style={styles.signOutButton} 
+        onPress={() => navigateTo("Login")}>
+      <Text style={styles.signOutText}>Sign Out</Text>
+      </TouchableOpacity>
     </View>
   );
 };
 
 const tasks = [
-  { title: 'S Sound Initial', dueDate: 'Feb 28, 2024', seeds: 55,  words: ['Summer', 'Stain', 'Silly', 'Sock', 'Say'], wordCount: 0 },
-  { title: 'R Sound Medial', dueDate: 'Feb 28, 2024', seeds: 55,  words: ['Carrot', 'Berry', 'Corn', 'Arrow', 'Parent'], wordCount: 0},
+  { title: 'S Sound Initial', dueDate: 'March 21, 2025', seeds: 55,  words: ['Summer', 'Stain', 'Silly', 'Sock', 'Say'], wordCount: 0 },
+  { title: 'R Sound Medial', dueDate: 'March 21, ', seeds: 55,  words: ['Carrot', 'Berry', 'Corn', 'Arrow', 'Parent'], wordCount: 0},
 ];
 
 const styles = StyleSheet.create({
@@ -103,7 +108,7 @@ const styles = StyleSheet.create({
   },
   plantingButton: {
     position: "absolute",
-    top: 10,
+    bottom: 10,
     right: 15, 
     backgroundColor: "#5A3E1B",
     borderRadius: 5,
@@ -112,6 +117,20 @@ const styles = StyleSheet.create({
   plantingButtonText: {
     color: "white",
     fontWeight: "bold",
+  },
+  signOutButton: {
+    position: "absolute",
+    bottom: 20,
+    right: 20,
+    backgroundColor: "#5A3E1B",
+    paddingHorizontal: 15,
+    paddingVertical: 10,
+    borderRadius: 8,
+  },
+  signOutText: {
+    color: "white",
+    fontWeight: "bold",
+    fontSize: 16,
   },
 });
 
