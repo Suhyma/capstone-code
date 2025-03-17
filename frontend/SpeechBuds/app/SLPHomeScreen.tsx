@@ -40,21 +40,31 @@ const HomeScreen = () => {
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>MY CLIENTS</Text>
         <View style={styles.clientsRow}>
-          <View style={styles.clientCard}>
+
+        <View style={styles.clientCard}>
+          <TouchableOpacity onPress={() => navigateTo("Clients")}>
             <Text style={styles.clientName}>Sarah Grey</Text>
             <Text style={styles.clientDetails}>8 years old</Text>
             <Text style={styles.clientDetails}>5 weeks into treatment</Text>
-          </View>
-          <View style={styles.clientCard}>
+          </TouchableOpacity>
+        </View>
+        
+        <View style={styles.clientCard}>
+          <TouchableOpacity onPress={() => navigateTo("Clients")}>
             <Text style={styles.clientName}>John Doe</Text>
             <Text style={styles.clientDetails}>10 years old</Text>
             <Text style={styles.clientDetails}>3 weeks into treatment</Text>
-          </View>
+          </TouchableOpacity>
+        </View>
+
           <View style={styles.clientCard}>
-            <Text style={styles.clientName}>Adam Deer</Text>
-            <Text style={styles.clientDetails}>8 years old</Text>
-            <Text style={styles.clientDetails}>3 weeks into treatment</Text>
+            <TouchableOpacity onPress={() => navigateTo("Clients")}>
+              <Text style={styles.clientName}>Adam Deer</Text>
+              <Text style={styles.clientDetails}>8 years old</Text>
+              <Text style={styles.clientDetails}>3 weeks into treatment</Text>
+            </TouchableOpacity>
           </View>
+
         </View>
       </View>
 

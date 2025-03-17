@@ -16,14 +16,10 @@ const ExercisesScreen = () => {
       <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
         <Text style={styles.backText}>{"<"}</Text>
       </TouchableOpacity>
-
+      
       {/* Header */}
       <View style={styles.header}>
-        <Image source={require('@/assets/images/Flower.png')} style={styles.profileIcon} />
         <Text style={styles.title}>EXERCISES</Text>
-        <TouchableOpacity style={styles.settingsButton}>
-          <Image source={require('@/assets/images/Flower.png')} style={styles.settingsIcon} />
-        </TouchableOpacity>
       </View>
 
       {/* Exercise Info */}
@@ -112,7 +108,7 @@ const styles = StyleSheet.create({
   },
   backButton: {
     position: "absolute",
-    top: 30,
+    top: 10,
     left: 20,
     zIndex: 10,
   },
@@ -122,7 +118,7 @@ const styles = StyleSheet.create({
   },
   header: {
     flexDirection: "row",
-    justifyContent: "space-between",
+    justifyContent: "center",
     alignItems: "center",
     marginBottom: 20,
   },
@@ -131,7 +127,7 @@ const styles = StyleSheet.create({
     height: 30,
   },
   title: {
-    fontSize: 20,
+    fontSize: 35,
     fontWeight: "bold",
     color: "#654321",
   },
