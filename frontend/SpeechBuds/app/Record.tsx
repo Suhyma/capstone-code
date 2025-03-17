@@ -67,7 +67,9 @@ export default function Record() {
     console.log("New word selected. Resetting state.");
     setIsRecording(false);
 
+
     // check for changes in dimensions
+    updateDimensions();
     const subscription = Dimensions.addEventListener("change", updateDimensions);
     return () => subscription.remove();
 
@@ -186,7 +188,13 @@ export default function Record() {
         </View>
 
       {/* Camera View */}
-        <View style={[styles.cameraContainer, isPortrait ? styles.portraitCamera : styles.landscapeCamera]}>
+      <View 
+          style={[
+            styles.cameraContainer,
+            isPortrait ? { width: "90%", height: screenHeight * 0.5 } 
+                       : { width: screenWidth * 0.8, height: "80%" }
+          ]}
+        >
           <CameraView ref={cameraRef} style={styles.camera} mode="video" facing={facing} />
         </View>
 
@@ -305,7 +313,7 @@ const styles = StyleSheet.create({
   },
   exitButton: {
     position: "absolute",
-    top: -40,
+    top: -25,
     right: 15, 
     backgroundColor: "#5A3E1B",
     borderRadius: 5,
@@ -320,16 +328,16 @@ const styles = StyleSheet.create({
     // width: width * 0.8,
     // height: height * 0.6,
     // backgroundColor: "#D9B382",
-    // borderRadius: 10,
-    // borderWidth: 2,
-    // borderColor: '#684503',
+    borderRadius: 10,
+    borderWidth: 2,
+    borderColor: '#684503',
     overflow: "hidden",
     justifyContent: "center",
     alignItems: "center",
   },
   portraitCamera: {
     width: "90%",
-    height: screenHeight * 0.6,
+    height: screenHeight * 0.5,
   },
   landscapeCamera: {
     width: screenWidth * 0.8,
