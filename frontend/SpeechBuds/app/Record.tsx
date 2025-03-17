@@ -179,11 +179,21 @@ export default function Record() {
         {/* Header with Exercise Word and Exit Button */}
         <View style={styles.header}>
           <Text style={styles.title}>Your turn! Try saying the word: {currentWord}</Text>
+
+          {/* Exit Button */}
           <TouchableOpacity
             style={styles.exitButton}
             onPress={() => navigateTo("ChildHomeScreen")}
           >
             <Text style={styles.exitButtonText}>Exit</Text>
+          </TouchableOpacity>
+
+          {/* Back Button */}
+          <TouchableOpacity
+            style={styles.backButton}
+            onPress={() => navigateTo("Demo", { wordSet: wordSet, currentIndex: currentIndex })}
+          >
+            <Text style={styles.exitButtonText}>Back</Text>
           </TouchableOpacity>
         </View>
 
@@ -315,6 +325,14 @@ const styles = StyleSheet.create({
     position: "absolute",
     top: -25,
     right: 15, 
+    backgroundColor: "#5A3E1B",
+    borderRadius: 5,
+    padding: 5,
+  },
+  backButton: {
+    position: "absolute",
+    top: -25,
+    left: 15, 
     backgroundColor: "#5A3E1B",
     borderRadius: 5,
     padding: 5,
