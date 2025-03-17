@@ -69,7 +69,7 @@ const DemoScreen = () => {
         {/* Start Exercise Button */}
         <TouchableOpacity
           style={styles.startButton}
-          onPress={() => navigateTo("Record", { wordSet: wordSet, currentIndex: currentIndex, attemptNumber: attempt })}
+          onPress={() => navigateTo("Record_CV", { wordSet: wordSet, currentIndex: currentIndex, attemptNumber: attempt })}
         >
           <Text style={styles.startButtonText}>Start</Text>
         </TouchableOpacity>
