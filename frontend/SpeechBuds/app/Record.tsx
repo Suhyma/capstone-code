@@ -134,7 +134,7 @@ export default function Record() {
       // Send the request to your backend
       console.log("Sending response to backend with Axios...");
       const axiosResponse = await axios.post( // Renamed 'response' to 'axiosResponse'
-        "https://0553-72-138-72-162.ngrok-free.app/api/submit_audio/",
+        "https://19eb-2620-101-f000-7c0-00-1425.ngrok-free.app/api/submit_audio/",
         formData,
         {
           headers: {
