@@ -8,6 +8,7 @@ import { submitAudio } from '../services/api';
 import { Audio } from 'expo-av';
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import axios from 'axios';
+import * as FileSystem from 'expo-file-system';
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
 
@@ -25,8 +26,7 @@ export default function Record() {
   const [permission, requestPermission] = useCameraPermissions();
   const [isRecording, setIsRecording] = useState(false);
   const [videoUri, setVideoUri] = useState<string | null>(null);
-  // const [audioUri, setAudioUri] = useState<string | null>(null);
-  // const [audioRecording, setAudioRecording] = useState<Audio.Recording | null>(null);
+
   const [isButtonDisabled, setIsButtonDisabled] = useState(false);
   const [screenWidth, setScreenWidth] = useState(Dimensions.get("window").width);
   const [screenHeight, setScreenHeight] = useState(Dimensions.get("window").height);
@@ -90,17 +90,6 @@ export default function Record() {
     );
   }
 
-  // Play the audio for testing
-  // const playAudio = async () => {
-  //   if (audioUri) {
-  //     const { sound } = await Audio.Sound.createAsync(
-  //       { uri: audioUri },
-  //       { shouldPlay: true }
-  //     );
-  //     await sound.playAsync();
-  //   }
-  // };
-
   async function toggleRecording() {
     if (isRecording) {
       cameraRef.current?.stopRecording();
@@ -109,6 +98,7 @@ export default function Record() {
       setIsRecording(true)
       const response = await cameraRef.current?.recordAsync({maxDuration: 20});
       setVideoUri(response!.uri);
+      console.log("Video URI:", response!.uri);
     }
   }
   
@@ -121,27 +111,38 @@ export default function Record() {
   
     try {
       // Fetch the audio file from the URI and convert it to a Blob
-      console.log("Fetching response...");
+      console.log("Fetching response from: ", videoUri);
       const fetchResponse = await fetch(videoUri);
       const blob = await fetchResponse.blob(); // Converts URI to Blob
-  
+      console.log("Blob created: ", blob);
+
+      // Create a new File object, passing the correct metadata
+      const file = new File([blob], "recording.mov", { type: "video/quicktime" });
+      console.log("File object created:", file);
+
       // Create a new FormData object and append the audio file
       console.log("Creating form data...");
       const formData = new FormData();
-      formData.append("audio_file", blob, "recording.m4a"); // 'recording.m4a' is the filename
-  
-      // Get the access token from AsyncStorage
-      const token = await AsyncStorage.getItem("accessToken");
-  
+      formData.append("audio_file", file);
+      
+      console.log("FormData prepared:", formData);
+
+      // // Get the access token from AsyncStorage
+      // const token = await AsyncStorage.getItem("accessToken");
+      // if (!token) {
+      //   console.error("No access token found!");
+      //   return;
+      // }
+
       // Send the request to your backend
       console.log("Sending response to backend with Axios...");
       const axiosResponse = await axios.post( // Renamed 'response' to 'axiosResponse'
-        "https://19eb-2620-101-f000-7c0-00-1425.ngrok-free.app/api/submit_audio/",
+        "https://2b6a-24-114-29-182.ngrok-free.app/api/submit_audio/",
         formData,
         {
           headers: {
             "Content-Type": "multipart/form-data",
-            Authorization: `Bearer ${token}`,
+            // Authorization: `Bearer ${token}`,
           },
         }
       );
@@ -229,14 +230,6 @@ export default function Record() {
         >
           <Text style={styles.text}>Get Feedback</Text>
         </TouchableOpacity>
-
-        {/* just testing out the audio playback capabilities */}
-        {/* <TouchableOpacity 
-          style={styles.button}
-          //onPress={sendAudioToBackend}> below sends 0 for score and "" for feedback by default atm
-          onPress={playAudio}> 
-          <Text style={styles.text}>Play Audio</Text>
-        </TouchableOpacity> */}
       </View>
       </View>
     </View>
@@ -265,25 +258,6 @@ const styles = StyleSheet.create({
     marginTop: 50,
     marginBottom: 50,
   },
-  // header: {
-  //   flex: 1,
-  //   // position: "absolute",
-  //   top: 0,
-  //   left: 0,
-  //   right: 0,
-  //   flexDirection: "column",
-  //   justifyContent: "center",
-  //   alignItems: "center",
-  //   marginTop: 5,
-  //   marginBottom: 15,
-  // },
-  // header: {
-  //   width: "100%",  
-  //   flexDirection: "column",  
-  //   justifyContent: "center",  
-  //   alignItems: "center",  
-  //   marginTop: 10,  
-  // }, 
   header: {
     flexDirection: "row",
     justifyContent: "space-between",
@@ -324,10 +298,6 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
   },
   cameraContainer: {
-    // flex: 1,
-    // width: width * 0.8,
-    // height: height * 0.6,
-    // backgroundColor: "#D9B382",
     borderRadius: 10,
     borderWidth: 2,
     borderColor: '#684503',
@@ -343,27 +313,13 @@ const styles = StyleSheet.create({
     width: screenWidth * 0.8,
     height: "80%", 
   },
-  // cameraContainer: {
-  //   flex: 1,
-  //   width: "90%",
-  //   backgroundColor: "#D9B382",
-  //   aspectRatio: 3 / 2, // Keeps consistent size across devices
-  //   justifyContent: "center",
-  //   alignItems: "center",
-  // },
   camera: {
     flex: 1,
     width: "100%",
-    // height: "100%",
     borderRadius: 10,
-    //marginTop: 20,
-    //marginBottom: 20,
-    //marginLeft: 20,
-    //marginRight: 20,
   },
   message: {
     textAlign: 'center',
-    //paddingBottom: 10,
   },
   buttonContainer: {
     flexDirection: "row",

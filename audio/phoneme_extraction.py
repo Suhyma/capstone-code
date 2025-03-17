@@ -26,7 +26,7 @@ def decode_phonemes(ids: torch.Tensor, processor: Wav2Vec2Processor, ignore_stre
 
     return prediction
 
-def convert_m4a_to_wav(input_path, output_path):
+def convert_mov_to_wav(input_path, output_path):
     try:
         subprocess.run(["ffmpeg", "-i", input_path, output_path], check=True)
         return output_path
@@ -39,8 +39,8 @@ def extract_phonemes(audiofile):
     processor = AutoProcessor.from_pretrained(checkpoint)
     sr = processor.feature_extractor.sampling_rate
 
-    wav_path = audiofile.path.replace(".m4a", ".wav")
-    wav_path = convert_m4a_to_wav(audiofile.path, wav_path)
+    wav_path = audiofile.path.replace(".mov", ".wav")
+    wav_path = convert_mov_to_wav(audiofile.path, wav_path)
 
     # reading a single audio file
     # audio_array, _ = librosa.load(audiofile, sr=sr)
