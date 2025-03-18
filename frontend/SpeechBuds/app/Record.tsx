@@ -106,63 +106,55 @@ export default function Record() {
   // Function to submit audio to the backend and navigate to feedback page
   const sendAudioToBackend = async () => {
     if (!videoUri) {
-      console.error("No audio file to submit.");
+      console.error("No video file to submit.");
       return;
     }
   
     try {
-      // Fetch the audio file from the URI and convert it to a Blob
       console.log("Fetching response from: ", videoUri);
-      const fetchResponse = await fetch(videoUri);
-      const blob = await fetchResponse.blob(); // Converts URI to Blob
+  
+      // Read the file as Base64
+      const base64Data = await FileSystem.readAsStringAsync(videoUri, { encoding: FileSystem.EncodingType.Base64 });
+      console.log("Base64 data fetched:", base64Data);
+  
+      // Convert the Base64 string to a binary format (Uint8Array)
+      const binaryData = Uint8Array.from(atob(base64Data), c => c.charCodeAt(0));
+  
+      // Create a Blob from the binary data (use 'video/quicktime' if you're working with .mov, or 'video/mp4' for other formats)
+      const blob = new Blob([binaryData], { type: 'video/quicktime' });
       console.log("Blob created: ", blob);
-
-      // Create a new File object, passing the correct metadata
-      const file = new File([blob], "recording.mov", { type: "video/quicktime" });
-      console.log("File object created:", file);
-
-      // Create a new FormData object and append the audio file
-      console.log("Creating form data...");
+  
+      // Create a new FormData object and append the video file
       const formData = new FormData();
-      formData.append("audio_file", file);
-      
-      console.log("FormData prepared:", formData);
-
-      // // Get the access token from AsyncStorage
-      // const token = await AsyncStorage.getItem("accessToken");
-      // if (!token) {
-      //   console.error("No access token found!");
-      //   return;
-      // }
-
-      let axiosResponse: AxiosResponse | null = null;
-
+      formData.append("audio_file", blob, "recording.mov"); // Make sure the filename matches the expected format
+  
+      // Send the request to the backend with the FormData
+      let axiosResponse = null;
       try {
-        // Send the request to your backend
         console.log("Sending response to backend with Axios...");
-        axiosResponse = await axios.post( 
-          "https://8607-129-97-124-149.ngrok-free.app/api/submit_audio/",
+        axiosResponse = await axios.post(
+          "https://6a4f-2620-101-f000-7c0-00-30eb.ngrok-free.app/api/submit_audio/",
           formData,
           {
             headers: {
               "Content-Type": "multipart/form-data",
-              // Authorization: `Bearer ${token}`,
+              // Authorization: `Bearer ${token}`, // Add your token here if needed
             },
           }
         );
-
-        console.log("Response received");
-      } catch (error: unknown) {
+        console.log("Response received:", axiosResponse?.data);
+      } catch (error) {
         if (axios.isAxiosError(error)) {
-          console.error(error.response?.data || error.message);
+          console.error("Axios error:", error.response?.data || error.message);
         } else {
-          console.error("An unknown error occurred", error);
+          console.error("Unexpected error:", error);
         }
       }
-      
-      if (axiosResponse){
+  
+      // Process the response if available
+      if (axiosResponse) {
         console.log("API Response:", axiosResponse.data);
-    
+  
         // Navigate to the feedback screen with the response data
         navigateTo("Feedback", { 
           wordSet, 
@@ -171,17 +163,11 @@ export default function Record() {
           score: axiosResponse.data?.score || 0, 
           feedback: axiosResponse.data?.feedback || "", 
         });
-    } else {
+      } else {
         console.error("No response received from API.");
       }
-    }
-      catch (error: unknown) { // Explicitly typing 'error' as 'unknown'
-      // Checking if the error is an AxiosError and then extracting data
-      if (axios.isAxiosError(error)) {
-        console.error("Axios error submitting audio:", error.response?.data || error.message);
-      } else {
-        console.error("Unexpected error submitting audio:", error);
-      }
+    } catch (error) {
+      console.error("Error submitting video:", error);
     }
   };
 
