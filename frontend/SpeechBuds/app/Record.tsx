@@ -7,8 +7,9 @@ import { useNavigate } from './hooks/useNavigate';
 import { submitAudio } from '../services/api'; 
 import { Audio } from 'expo-av';
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import axios from 'axios';
+import axios, { AxiosResponse } from 'axios';
 import * as FileSystem from 'expo-file-system';
+
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
 
@@ -134,30 +135,47 @@ export default function Record() {
       //   return;
       // }
 
-      // Send the request to your backend
-      console.log("Sending response to backend with Axios...");
-      const axiosResponse = await axios.post( // Renamed 'response' to 'axiosResponse'
-        "https://2b6a-24-114-29-182.ngrok-free.app/api/submit_audio/",
-        formData,
-        {
-          headers: {
-            "Content-Type": "multipart/form-data",
-            // Authorization: `Bearer ${token}`,
-          },
+      let axiosResponse: AxiosResponse | null = null;
+
+      try {
+        // Send the request to your backend
+        console.log("Sending response to backend with Axios...");
+        axiosResponse = await axios.post( 
+          "https://2b6a-24-114-29-182.ngrok-free.app/api/submit_audio/",
+          formData,
+          {
+            headers: {
+              "Content-Type": "multipart/form-data",
+              // Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+
+        console.log("Response received");
+      } catch (error: unknown) {
+        if (axios.isAxiosError(error)) {
+          console.error(error.response?.data || error.message);
+        } else {
+          console.error("An unknown error occurred", error);
         }
-      );
+      }
       
-      console.log("API Response:", axiosResponse.data);
-  
-      // Navigate to the feedback screen with the response data
-      navigateTo("Feedback", { 
-        wordSet, 
-        currentIndex, 
-        attemptNumber, 
-        score: axiosResponse.data?.score || 0, 
-        feedback: axiosResponse.data?.feedback || "", 
-      });
-    } catch (error: unknown) { // Explicitly typing 'error' as 'unknown'
+      if (axiosResponse){
+        console.log("API Response:", axiosResponse.data);
+    
+        // Navigate to the feedback screen with the response data
+        navigateTo("Feedback", { 
+          wordSet, 
+          currentIndex, 
+          attemptNumber, 
+          score: axiosResponse.data?.score || 0, 
+          feedback: axiosResponse.data?.feedback || "", 
+        });
+    } else {
+        console.error("No response received from API.");
+      }
+    }
+      catch (error: unknown) { // Explicitly typing 'error' as 'unknown'
       // Checking if the error is an AxiosError and then extracting data
       if (axios.isAxiosError(error)) {
         console.error("Axios error submitting audio:", error.response?.data || error.message);
