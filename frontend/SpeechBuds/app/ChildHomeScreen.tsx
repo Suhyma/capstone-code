@@ -28,7 +28,7 @@ const ChildHomeScreen = () => {
 
       {/* Right Section - Task List */}
       <View style={styles.taskListContainer}>
-        <Text style={styles.header}>Let's Get Growing!</Text>
+        <Text style={styles.header}>Assigned Exercises</Text>
 
         <ScrollView>
           {tasks.map((task, index) => (
@@ -63,7 +63,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     flexDirection: "row", // Set main layout to row
-    backgroundColor: "#88C040", // Green background
+    backgroundColor: "#A4D65E", // Green background
     padding: 10,
   },
   gardenContainer: {
