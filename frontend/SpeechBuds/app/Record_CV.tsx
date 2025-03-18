@@ -8,6 +8,7 @@ import { submitAudio } from '../services/api';
 import { Audio } from 'expo-av';
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import axios from 'axios';
+import * as FileSystem from 'expo-file-system';
 
 {/*Stuff that is necessary for CV features*/}
 import VideoViewComponent from './VideoViewComponent';
@@ -96,17 +97,6 @@ export default function Record() {
       </View>
     );
   }
-
-  // Play the audio for testing
-  // const playAudio = async () => {
-  //   if (audioUri) {
-  //     const { sound } = await Audio.Sound.createAsync(
-  //       { uri: audioUri },
-  //       { shouldPlay: true }
-  //     );
-  //     await sound.playAsync();
-  //   }
-  // };
 
   async function toggleRecording() {
     if (isRecording) {
@@ -301,25 +291,6 @@ const styles = StyleSheet.create({
     marginTop: 50,
     marginBottom: 50,
   },
-  // header: {
-  //   flex: 1,
-  //   // position: "absolute",
-  //   top: 0,
-  //   left: 0,
-  //   right: 0,
-  //   flexDirection: "column",
-  //   justifyContent: "center",
-  //   alignItems: "center",
-  //   marginTop: 5,
-  //   marginBottom: 15,
-  // },
-  // header: {
-  //   width: "100%",  
-  //   flexDirection: "column",  
-  //   justifyContent: "center",  
-  //   alignItems: "center",  
-  //   marginTop: 10,  
-  // }, 
   header: {
     flexDirection: "row",
     justifyContent: "space-between",
@@ -368,10 +339,6 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
   },
   cameraContainer: {
-    // flex: 1,
-    // width: width * 0.8,
-    // height: height * 0.6,
-    // backgroundColor: "#D9B382",
     borderRadius: 10,
     borderWidth: 2,
     borderColor: '#684503',
@@ -387,27 +354,13 @@ const styles = StyleSheet.create({
     width: screenWidth * 0.8,
     height: "80%", 
   },
-  // cameraContainer: {
-  //   flex: 1,
-  //   width: "90%",
-  //   backgroundColor: "#D9B382",
-  //   aspectRatio: 3 / 2, // Keeps consistent size across devices
-  //   justifyContent: "center",
-  //   alignItems: "center",
-  // },
   camera: {
     flex: 1,
     width: "100%",
-    // height: "100%",
     borderRadius: 10,
-    //marginTop: 20,
-    //marginBottom: 20,
-    //marginLeft: 20,
-    //marginRight: 20,
   },
   message: {
     textAlign: 'center',
-    //paddingBottom: 10,
   },
   buttonContainer: {
     flexDirection: "row",
