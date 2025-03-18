@@ -230,13 +230,14 @@ export default function Record() {
 
       {/* Buttons */}
       <View style={styles.buttonContainer}>
-        <TouchableOpacity style={[styles.button, isRecording && styles.recordingButton]} onPress={toggleRecording} disabled={isButtonDisabled}>
+        <TouchableOpacity style={[styles.button, isRecording && styles.recordingButton]} onPress={toggleRecording}>
           <Text style={styles.text}>{isRecording ? "Stop" : "Record"}</Text>
         </TouchableOpacity>
 
         <TouchableOpacity 
-          style={styles.button}
+          style={[styles.button, !videoUri && styles.disabledButton]}
           onPress={sendAudioToBackend}  // Call sendAudioToBackend here to submit the audio
+          disabled={!videoUri}
         >
           <Text style={styles.text}>Get Feedback</Text>
         </TouchableOpacity>
@@ -249,7 +250,7 @@ export default function Record() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#88C040",
+    backgroundColor: "#A4D65E",
     justifyContent: "center",
     alignItems: "center",
   },
@@ -352,6 +353,9 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     minWidth: screenWidth * 0.3,
+  },
+  disabledButton: {
+    backgroundColor: "#ccc", // Greyed out when disabled
   },
   recordingButton: {
     backgroundColor: "red",

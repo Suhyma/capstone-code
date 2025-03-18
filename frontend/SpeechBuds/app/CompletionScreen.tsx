@@ -58,7 +58,7 @@ const CompletionScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#88C040", // Green background
+    backgroundColor: "#A4D65E", // Green background
     justifyContent: "center",
     alignItems: "center",
     padding: 20,
