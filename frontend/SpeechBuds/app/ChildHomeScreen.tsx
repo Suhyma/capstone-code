@@ -10,6 +10,11 @@ const ChildHomeScreen = () => {
 
   return (
     <View style={styles.container}>
+      <TouchableOpacity 
+        style={styles.signOutButton} 
+        onPress={() => navigateTo("Login")}>
+      <Text style={styles.signOutText}>Sign Out</Text>
+      </TouchableOpacity>
       {/* Left Section - Garden Grid */}
       <View style={styles.gardenContainer}>
         <View style={styles.gardenBox}>
@@ -44,12 +49,6 @@ const ChildHomeScreen = () => {
           ))}
         </ScrollView>
       </View>
-
-      <TouchableOpacity 
-        style={styles.signOutButton} 
-        onPress={() => navigateTo("Login")}>
-      <Text style={styles.signOutText}>Sign Out</Text>
-      </TouchableOpacity>
     </View>
   );
 };
@@ -119,13 +118,19 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
   },
   signOutButton: {
+    // position: "absolute",
+    // bottom: 20,
+    // right: 20,
+    // backgroundColor: "#5A3E1B",
+    // paddingHorizontal: 15,
+    // paddingVertical: 10,
+    // borderRadius: 8,
     position: "absolute",
-    bottom: 20,
-    right: 20,
+    top: 15,
+    right: 15, 
     backgroundColor: "#5A3E1B",
-    paddingHorizontal: 15,
-    paddingVertical: 10,
-    borderRadius: 8,
+    borderRadius: 5,
+    padding: 5,
   },
   signOutText: {
     color: "white",

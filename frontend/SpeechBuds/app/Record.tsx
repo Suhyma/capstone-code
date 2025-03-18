@@ -10,9 +10,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import axios, { AxiosResponse } from 'axios';
 import * as FileSystem from 'expo-file-system';
 
-
 const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
-
 
 export default function Record() {
   const { navigateTo } = useNavigate();
@@ -211,26 +209,23 @@ export default function Record() {
           ]}
         >
           <CameraView ref={cameraRef} style={styles.camera} mode="video" facing={facing} />
-        </View>
-
-
-      {/* Video Thumbnail */}
-      
-      {videoUri && (
-        <TouchableOpacity 
-          style={styles.thumbnailContainer} 
-          onPress={() => videoRef.current?.presentFullscreenPlayer()}
-        >
-          <Video
-            ref={(ref) => (videoRef.current = ref)} 
-            source={{ uri: videoUri }}
-            style={styles.thumbnail}
-            resizeMode={ResizeMode.COVER}
-            useNativeControls
-          />
-        </TouchableOpacity>
-      )}
-
+              
+          {/* Video Thumbnail */}
+          {videoUri && (
+          <TouchableOpacity 
+            style={styles.thumbnailContainer} 
+            onPress={() => videoRef.current?.presentFullscreenPlayer()}
+          >
+            <Video
+              ref={(ref) => (videoRef.current = ref)} 
+              source={{ uri: videoUri }}
+              style={styles.thumbnail}
+              resizeMode={ResizeMode.COVER}
+              useNativeControls
+            />
+          </TouchableOpacity>
+        )}
+      </View>
 
       {/* Buttons */}
       <View style={styles.buttonContainer}>
