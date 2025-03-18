@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { 
   View, 
   Image, 
@@ -6,7 +6,8 @@ import {
   StyleSheet, 
   GestureResponderEvent, 
   Text,
-  LayoutChangeEvent
+  LayoutChangeEvent,
+  Dimensions
 } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import { StackNavigationProp } from "@react-navigation/stack";
@@ -14,6 +15,8 @@ import { StackNavigationProp } from "@react-navigation/stack";
 type RootStackParamList = {
   ChildHomeScreen: undefined;
 };
+
+const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
 
 const gardenItems = [
   { id: 1, image: require("@/assets/images/Corn.png") },
@@ -24,9 +27,33 @@ const gardenItems = [
 const GardenScreen: React.FC = () => {
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
 
+  // responsive screen sizing
+  const [screenWidth, setScreenWidth] = useState(Dimensions.get("window").width);
+  const [screenHeight, setScreenHeight] = useState(Dimensions.get("window").height);
+  const [isPortrait, setIsPortrait] = useState(screenHeight > screenWidth);
+  
+  // garden items
   const [selectedItem, setSelectedItem] = useState<any>(null);
   const [plantedItems, setPlantedItems] = useState<{ id: number; x: number; y: number; image: any }[]>([]);
   const [gardenSize, setGardenSize] = useState<{ width: number; height: number }>({ width: 0, height: 0 });
+
+
+  useEffect(() => {
+      // checking screen dimensions
+      const updateDimensions = () => {
+        const newWidth = Dimensions.get("window").width;
+        const newHeight = Dimensions.get("window").height;
+        setScreenWidth(newWidth);
+        setScreenHeight(newHeight);
+        setIsPortrait(newHeight > newWidth);
+      };
+
+       // check for changes in dimensions
+          updateDimensions();
+          const subscription = Dimensions.addEventListener("change", updateDimensions);
+          return () => subscription.remove();
+      
+        }, []);
 
   const handlePlant = () => {
     if (!selectedItem || gardenSize.width === 0 || gardenSize.height === 0) return;
@@ -53,7 +80,10 @@ const GardenScreen: React.FC = () => {
 
       {/* Garden Area */}
       <TouchableOpacity 
-        style={styles.garden} 
+        style={[styles.garden,
+              isPortrait ? { width: "90%", height: screenHeight * 0.5 } 
+                        : { width: screenWidth * 0.8, height: "80%" }
+        ]} 
         activeOpacity={1} 
         onPress={handlePlant}
         onLayout={(event: LayoutChangeEvent) => {
@@ -88,16 +118,18 @@ const GardenScreen: React.FC = () => {
 const styles = StyleSheet.create({
   container: { 
     flex: 1, 
-    backgroundColor: "#8DC63F", 
+    backgroundColor: "#96C449", 
     padding: 10 
   },
   garden: { 
     flex: 1, 
+    width: screenWidth * 0.9,
+    height: screenHeight * 0.7,
     backgroundColor: "#E5C29F", 
     position: "relative",
     borderWidth: 2, 
     borderColor: "#8B5A2B", 
-    margin: 10 
+    margin: 30 
   },
   selectionBar: { 
     flexDirection: "row", 
