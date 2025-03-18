@@ -9,6 +9,8 @@ import { Audio } from 'expo-av';
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import axios, { AxiosResponse } from 'axios';
 import * as FileSystem from 'expo-file-system';
+import RNFetchBlob from 'rn-fetch-blob';
+
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
 
@@ -111,59 +113,31 @@ export default function Record() {
     try {
       console.log("Fetching response from: ", videoUri);
   
-      // Read the file as Base64
-      const base64Data = await FileSystem.readAsStringAsync(videoUri, { encoding: FileSystem.EncodingType.Base64 });
-      console.log("Base64 data fetched:", base64Data);
+      // Prepare the file and MIME type
+      const filePath = videoUri;
+      const mimeType = 'video/quicktime'; // Use 'video/mp4' for mp4 files
   
-      // Convert the Base64 string to a binary format (Uint8Array)
-      const binaryData = Uint8Array.from(atob(base64Data), c => c.charCodeAt(0));
+      // Use RNFetchBlob to handle the file upload
+      const response = await RNFetchBlob.fetch('POST', 'https://55f6-2620-101-f000-7c0-00-30eb.ngrok-free.app/api/submit_audio/', {
+        'Content-Type': 'multipart/form-data',
+        // Authorization: `Bearer ${token}`, // Add your token here if needed
+      }, [
+        { name: 'audio_file', filename: 'recording.mov', data: RNFetchBlob.wrap(filePath) },
+      ]);
   
-      // Create a Blob from the binary data (use 'video/quicktime' if you're working with .mov, or 'video/mp4' for other formats)
-      const blob = new Blob([binaryData], { type: 'video/quicktime' });
-      console.log("Blob created: ", blob);
-  
-      // Create a new FormData object and append the video file
-      const formData = new FormData();
-      formData.append("audio_file", blob, "recording.mov"); // Make sure the filename matches the expected format
-  
-      // Send the request to the backend with the FormData
-      let axiosResponse = null;
-      try {
-        console.log("Sending response to backend with Axios...");
-        axiosResponse = await axios.post(
-          "https://6a4f-2620-101-f000-7c0-00-30eb.ngrok-free.app/api/submit_audio/",
-          formData,
-          {
-            headers: {
-              "Content-Type": "multipart/form-data",
-              // Authorization: `Bearer ${token}`, // Add your token here if needed
-            },
-          }
-        );
-        console.log("Response received:", axiosResponse?.data);
-      } catch (error) {
-        if (axios.isAxiosError(error)) {
-          console.error("Axios error:", error.response?.data || error.message);
-        } else {
-          console.error("Unexpected error:", error);
-        }
-      }
+      console.log("Response received:", response?.data);
   
       // Process the response if available
-      if (axiosResponse) {
-        console.log("API Response:", axiosResponse.data);
+      const responseData = JSON.parse(response.data); // Parse the response data
   
-        // Navigate to the feedback screen with the response data
-        navigateTo("Feedback", { 
-          wordSet, 
-          currentIndex, 
-          attemptNumber, 
-          score: axiosResponse.data?.score || 0, 
-          feedback: axiosResponse.data?.feedback || "", 
-        });
-      } else {
-        console.error("No response received from API.");
-      }
+      // Navigate to the feedback screen with the response data
+      navigateTo("Feedback", {
+        wordSet,
+        currentIndex,
+        attemptNumber,
+        score: responseData?.score || 0,
+        feedback: responseData?.feedback || "",
+      });
     } catch (error) {
       console.error("Error submitting video:", error);
     }
