@@ -6,6 +6,7 @@ from itertools import groupby
 import subprocess
 import os
 import tempfile
+import sounddevice as sd
 
 def decode_phonemes(ids: torch.Tensor, processor: Wav2Vec2Processor, ignore_stress: bool = True) -> str:
     """CTC-like decoding. First removes consecutive duplicates, then removes special tokens."""
@@ -27,6 +28,10 @@ def decode_phonemes(ids: torch.Tensor, processor: Wav2Vec2Processor, ignore_stre
 
     return prediction
 
+def play_audio(audio_array, sr):
+    sd.play(audio_array, sr)
+    sd.wait()
+
 def convert_mov_to_wav(input_path):
     # Create a unique temp filename using NamedTemporaryFile
     with tempfile.NamedTemporaryFile(suffix=".wav", delete=False) as temp_wav:
@@ -35,7 +40,7 @@ def convert_mov_to_wav(input_path):
     # FFmpeg command to convert MOV to WAV
     command = [
         "ffmpeg", "-i", input_path, "-vn",
-        "-acodec", "pcm_s16le", "-ar", "44100", "-ac", "1", output_path
+        "-acodec", "pcm_s16le", "-ar", "16000", "-ac", "1", output_path
     ]
 
     try:
@@ -52,14 +57,17 @@ def extract_phonemes(audiofile):
     processor = AutoProcessor.from_pretrained(checkpoint)
     sr = processor.feature_extractor.sampling_rate
 
-    wav_path = audiofile.name.replace(".mov", ".wav")
+    print(f"Received audio file: {audiofile.name}")
+    # wav_path = audiofile.name.replace(".mov", ".wav")
     wav_path = convert_mov_to_wav(audiofile.name)
 
     # reading a single audio file
     # audio_array, _ = librosa.load(audiofile, sr=sr)
     # audio_array, _ = librosa.load(audiofile.path, sr=sr)
     audio_array, _ = librosa.load(wav_path, sr=sr)
-    inputs = processor(audio_array, return_tensors="pt", padding="longest", truncation=True, max_length=16000)
+    print(f"Audio file loaded. Sample rate: {sr}, Audio length: {len(audio_array)} samples")
+    play_audio(audio_array, sr)
+    inputs = processor(audio_array, return_tensors="pt", padding="longest", truncation=True, max_length=35000)
 
     with torch.no_grad():
         logits = model(inputs["input_values"]).logits

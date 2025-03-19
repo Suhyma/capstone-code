@@ -2,8 +2,8 @@ import axios from 'axios';
 import { AxiosError } from "axios";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
-const API_URL = 'https://c584-72-138-72-162.ngrok-free.app/api/register/';  // backend registration URL
-const API_BASE_URL = "https://c584-72-138-72-162.ngrok-free.app/api"; // Change if using a different URL
+const API_URL = 'https://3e68-24-114-29-182.ngrok-free.app/api/register/';  // backend registration URL
+const API_BASE_URL = "https://3e68-24-114-29-182.ngrok-free.app/api"; // Change if using a different URL
 
 
 // Function to handle user registration
