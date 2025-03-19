@@ -1,40 +1,69 @@
-import React, { useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { View, Text, StyleSheet, Dimensions, TouchableOpacity } from "react-native";
-import { Video, ResizeMode } from "expo-av";
+import { Video, ResizeMode, AVPlaybackStatus } from "expo-av";
 import { useNavigate } from "./hooks/useNavigate";
 import { useRoute } from "@react-navigation/native";
 
-// Get screen width and height for responsiveness
-const { width, height } = Dimensions.get("window");
+const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
 
 const DemoScreen = () => {
   const { navigateTo } = useNavigate();
   const route = useRoute();
   
+  const [screenWidth, setScreenWidth] = useState(Dimensions.get("window").width);
+  const [screenHeight, setScreenHeight] = useState(Dimensions.get("window").height);
+  const [isPortrait, setIsPortrait] = useState(screenHeight > screenWidth);
+
   const { wordSet, currentIndex } = route.params as { wordSet: string[], currentIndex: number };
   const currentWord = wordSet[currentIndex]
   const attempt = 0;
 
   const videoRef = useRef<Video>(null);
 
-  // 🎥 Video Mapping
+    // 🎥 Video Mapping
   const videoMapping: { [key: string]: any } = {
-    Summer: require("../assets/images/Summer.mp4"),
-    //Stain: require("../assets/images/Stain.mp4"),
-    //Silly: require("../assets/images/Silly.mp4"),
-    //Sock: require("../assets/images/Sock.mp4"),
-    //Say: require("../assets/images/Say.mp4"),
-    Carrot: require("../assets/images/Carrot.mp4"),
-    //Berry: require("../assets/images/Berry.mp4"),
-    //Corn: require("../assets/images/Corn.mp4"),
-    //Arrow: require("../assets/images/Arrow.mp4"),
-    //Parent: require("../assets/images/Parent.mp4"),
-  };
+    Summer: "https://firebasestorage.googleapis.com/v0/b/speech-buds.firebasestorage.app/o/Summer.mp4?alt=media&token=b537e7ed-ced2-4819-b8b5-96efce589748",
+    // Summer: require("assets/images/Summer.mp4"),
+    Carrot: "https://firebasestorage.googleapis.com/v0/b/speech-buds.firebasestorage.app/o/484258902_9332589840167314_759553405236316434_n.mp4?alt=media&token=6f18fe5c-810b-4aa5-a01d-1ee29e832937",
+  }
+
+  useEffect(() => {
+    // preloading the video beforehand to try and reduce load time
+    // const preloadVideo = async (uri: string) => {
+    //   const video = new Video();
+    //   await video.loadAsync({ uri }, {}, false); 
+    //   console.log("Video preloaded");
+    // };
+
+    // preloadVideo(videoMapping[currentWord])
+    
+    // checking screen dimensions
+    const updateDimensions = () => {
+      const newWidth = Dimensions.get("window").width;
+      const newHeight = Dimensions.get("window").height;
+      setScreenWidth(newWidth);
+      setScreenHeight(newHeight);
+      setIsPortrait(newHeight > newWidth);
+    };
+
+    // check for changes in dimensions
+    updateDimensions();
+      const subscription = Dimensions.addEventListener("change", updateDimensions);
+      return () => subscription.remove();
+      
+  }, []);
 
   // Select video based on `word`, default to a placeholder
-  const selectedVideo = videoMapping[currentWord] || require("../assets/images/default.mp4");
-  const progressWidth = ((currentIndex + 1) * (width/5));
+  const selectedVideo = videoMapping[currentWord] || "https://drive.google.com/uc?export=download&id=1_IZfzWCWZ8iz5X-bYHFdTWWYHR1r8rdu";
+  const progressWidth = ((currentIndex + 1) * (screenWidth/5));
 
+  const handleReplay = async () => {
+    if (videoRef.current) {
+      await videoRef.current.stopAsync();
+      await videoRef.current.playAsync();
+    }
+  };
+  
   return (
     <View style={styles.container}>
        {/* Progress Bar */}
@@ -46,11 +75,21 @@ const DemoScreen = () => {
         {/* Header with Exercise Word and Exit Button */}
         <View style={styles.header}>
           <Text style={styles.title}>Let's say the word: {currentWord}</Text>
+          
+          {/* Exit Button */}
           <TouchableOpacity
             style={styles.exitButton}
             onPress={() => navigateTo("ChildHomeScreen")}
           >
             <Text style={styles.exitButtonText}>Exit</Text>
+          </TouchableOpacity>
+
+           {/* Back Button */}
+          <TouchableOpacity
+            style={styles.backButton}
+            onPress={() => navigateTo("ChildHomeScreen")}
+          >
+            <Text style={styles.exitButtonText}>Back</Text>
           </TouchableOpacity>
         </View>
 
@@ -58,11 +97,14 @@ const DemoScreen = () => {
         <View style={styles.videoContainer}>
           <Video
             ref={videoRef}
-            source={selectedVideo} // 🎥 Dynamically update video source
+            source={{ uri: videoMapping[currentWord] }}
             useNativeControls
             resizeMode={ResizeMode.COVER}
             shouldPlay
             style={styles.video}
+            usePoster={true}
+            onLoad={() => console.log("Video loaded")} // Optional debug log
+            onError={(error) => console.log("Error loading video:", error)}
           />
         </View>
 
@@ -84,20 +126,16 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#A4D65E", // Green background
-    flexDirection: "column",
+    // flexDirection: "column",
     justifyContent: "center",
     alignItems: "center",
-    padding: 50,
+    // padding: 50,
   },
   progressBarContainer: {
-    position: "absolute",
-    top: 10,
-    left: 0,
-    width: width * 0.9,
-    height: 6,
+    width: "100%",
+    height: 15,
     backgroundColor: "#D9B382",
     borderRadius: 3,
-    overflow: "hidden",
   },
   progressBar: {
     height: "100%",
@@ -105,32 +143,36 @@ const styles = StyleSheet.create({
   },
   brownContainer: {
     flex: 1,
-    width: width * 0.9,
-    height: height * 0.8,
-    flexDirection: "column",
-    justifyContent: "center",
+    width: screenWidth * 0.9,
+    height: screenHeight * 0.9,
+    // flexDirection: "column",
+    // justifyContent: "center",
     alignItems: "center",
     backgroundColor: "#D9B382",
     borderRadius: 10,
     borderWidth: 2,
     borderColor: '#684503',
-    overflow: "visible",
+    overflow: "hidden",
+    marginTop: 50,
+    marginBottom: 50,
   },
   header: {
-    flex: 1,
-    position: "absolute",
-    top: 0,
-    left: 0,
-    right: 0,
-    flexDirection: "row",
-    justifyContent: "center",
+    // flexDirection: "row",
+    // justifyContent: "space-between",
     alignItems: "center",
+    // paddingHorizontal: 20,
+    paddingVertical: 10,
+    width: "100%",
+    backgroundColor: "#D9B382",
   },
   title: {
-    fontSize: 25,
+    fontSize: 20,
     fontWeight: "bold",
     color: "#432818",
     textAlign: "center",
+    overflow: "visible",
+    marginBottom: 10,
+    marginTop: 35
   },
   exitButton: {
     position: "absolute",
@@ -144,20 +186,36 @@ const styles = StyleSheet.create({
     color: "white",
     fontWeight: "bold",
   },
+  backButton: {
+    position: "absolute",
+    top: 10,
+    left: 15, 
+    backgroundColor: "#5A3E1B",
+    borderRadius: 5,
+    padding: 5,
+  },
+  // videoContainer: {
+  //   flex: 2,
+  //   // flexDirection: "row",
+  //   justifyContent: "center",
+  //   alignItems: "center",
+  //   // position: "absolute",
+  //   // top: 50,
+  //   left: 90,
+  // },
   videoContainer: {
-    flex: 2,
-    flexDirection: "row",
+    width: screenWidth * 0.8,
+    height: screenHeight * 0.5,
+    borderRadius: 10,
+    borderWidth: 2,
+    borderColor: '#684503',
+    overflow: "hidden",
     justifyContent: "center",
     alignItems: "center",
-    position: "absolute",
-    top: 50,
-    left: 90,
   },
   video: {
-    flex: 2,
-    width: "100%",
-    height: "100%",
-    overflow: "visible",
+    width: screenWidth * 0.8,
+    height: screenHeight * 0.5,
   },
   startButton: {
     backgroundColor: "#5A3E1B",
@@ -165,7 +223,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     borderRadius: 5,
     position: "absolute",
-    top: 550,
+    top: 580,
   },
   startButtonText: {
     color: "white",
