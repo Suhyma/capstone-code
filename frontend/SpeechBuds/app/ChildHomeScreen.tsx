@@ -199,7 +199,7 @@ const styles = StyleSheet.create({
 
   taskListContainer: { 
     flex: 1,  // Takes up the top half of the screen
-    padding: 10,
+    padding: 35,
     marginTop: 40, // Increased margin to move the content further down
   },
 
@@ -210,9 +210,9 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
 
-  taskCard: { backgroundColor: "#B48A5A", padding: 12, borderRadius: 8, marginBottom: 10 },
-  taskTitle: { fontSize: 20, fontWeight: "bold", padding: 12 },
-  taskDetails: { fontSize: 16, color: "#444" },
+  taskCard: { backgroundColor: "#B48A5A", padding: 10, borderRadius: 8, marginBottom: 20},
+  taskTitle: { fontSize: 25, fontWeight: "bold", padding: 10 },
+  taskDetails: { fontSize: 18, color: "#444", paddingStart: 10 },
 
   gardenWrapper: { 
     flex: 1,  // Takes up the bottom half of the screen
@@ -254,7 +254,7 @@ const styles = StyleSheet.create({
   selectionImage: { width: 50, height: 50, marginHorizontal: 10 },
   selected: { borderWidth: 2, borderColor: "white", borderRadius: 10 },
 
-  signOutButton: { position: "absolute", top: 15, right: 15, backgroundColor: "#5A3E1B", borderRadius: 5, padding: 5 },
+  signOutButton: { position: "absolute", top: 35, right: 35, backgroundColor: "#5A3E1B", borderRadius: 5, padding: 5 },
   signOutText: { color: "white", fontWeight: "bold", fontSize: 16 },
 
   limitMessage: {
