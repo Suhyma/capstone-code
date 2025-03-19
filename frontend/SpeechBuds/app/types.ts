@@ -12,6 +12,7 @@ export type StackParamList = {
   CompletionScreen: { overallScore: number, seedsCollected: number };
 
   GardenGame: undefined;
+  GardenContent: undefined;
   
 
   // SLP-facing screens
