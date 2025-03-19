@@ -7,15 +7,17 @@ import { useNavigate } from './hooks/useNavigate';
 import { submitAudio } from '../services/api'; 
 import { Audio } from 'expo-av';
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import axios from 'axios';
+import axios, { AxiosResponse } from 'axios';
 import * as FileSystem from 'expo-file-system';
+import RNFetchBlob, { PolyfillBlob } from 'rn-fetch-blob';
+import { storage, ref, uploadBytes } from '../services/firebase'
+import { getDownloadURL } from 'firebase/storage';
 
 {/*Stuff that is necessary for CV features*/}
 import VideoViewComponent from './VideoViewComponent';
 import { Switch } from 'react-native';
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
-
 
 export default function Record() {
   const { navigateTo } = useNavigate();
@@ -30,10 +32,11 @@ export default function Record() {
   const [permission, requestPermission] = useCameraPermissions();
   const [isRecording, setIsRecording] = useState(false);
   const [videoUri, setVideoUri] = useState<string | null>(null);
+
   const [screenWidth, setScreenWidth] = useState(Dimensions.get("window").width);
   const [screenHeight, setScreenHeight] = useState(Dimensions.get("window").height);
   const [isPortrait, setIsPortrait] = useState(screenHeight > screenWidth);
-
+  
   {/*Stuff that is necessary for CV features*/}
   const [audioUri, setAudioUri] = useState<string | null>(null);
   const [audioRecording, setAudioRecording] = useState<Audio.Recording | null>(null);
@@ -105,61 +108,69 @@ export default function Record() {
       setIsRecording(true)
       const response = await cameraRef.current?.recordAsync({maxDuration: 20});
       setVideoUri(response!.uri);
+      console.log("Video URI:", response!.uri);
     }
   }
   
   // Function to submit audio to the backend and navigate to feedback page
   const sendAudioToBackend = async () => {
     if (!videoUri) {
-      console.error("No audio file to submit.");
+      console.error("No video file to submit.");
       return;
     }
   
     try {
-      // Fetch the audio file from the URI and convert it to a Blob
-      console.log("Fetching response...");
-      const fetchResponse = await fetch(videoUri);
-      const blob = await fetchResponse.blob(); // Converts URI to Blob
+      console.log("Uploading video to Firebase from URI:", videoUri);
   
-      // Create a new FormData object and append the audio file
-      console.log("Creating form data...");
+      // Upload video to Firebase using URI directly
+      const downloadUri = await uploadToFirebase(videoUri); 
+  
+      // Prepare the FormData with the Firebase download URL
       const formData = new FormData();
-      formData.append("audio_file", blob, "recording.m4a"); // 'recording.m4a' is the filename
+      formData.append("audio_file", downloadUri);
   
-      // Get the access token from AsyncStorage
-      const token = await AsyncStorage.getItem("accessToken");
+      console.log("Sending video URL to backend...");
   
-      // Send the request to your backend
-      console.log("Sending response to backend with Axios...");
-      const axiosResponse = await axios.post( // Renamed 'response' to 'axiosResponse'
-        "https://19eb-2620-101-f000-7c0-00-1425.ngrok-free.app/api/submit_audio/",
+      const response = await axios.post(
+        "https://bcac-2620-101-f000-7c0-00-10eb.ngrok-free.app/api/submit_audio/",
         formData,
         {
           headers: {
             "Content-Type": "multipart/form-data",
-            Authorization: `Bearer ${token}`,
           },
         }
       );
-      
-      console.log("API Response:", axiosResponse.data);
   
-      // Navigate to the feedback screen with the response data
-      navigateTo("Feedback", { 
-        wordSet, 
-        currentIndex, 
-        attemptNumber, 
-        score: axiosResponse.data?.score || 0, 
-        feedback: axiosResponse.data?.feedback || "", 
+      console.log("Response from backend:", response?.data);
+      navigateTo("Feedback", {
+        wordSet,
+        currentIndex,
+        attemptNumber,
+        score: response?.data?.score || 0,
+        feedback: response?.data?.feedback || "",
       });
-    } catch (error: unknown) { // Explicitly typing 'error' as 'unknown'
-      // Checking if the error is an AxiosError and then extracting data
-      if (axios.isAxiosError(error)) {
-        console.error("Axios error submitting audio:", error.response?.data || error.message);
-      } else {
-        console.error("Unexpected error submitting audio:", error);
-      }
+    } catch (error) {
+      console.error("Error submitting video:", error);
     }
+  };
+  
+  // Helper function to upload file to Firebase Storage
+  const uploadToFirebase = async (fileUri: string) => {
+    const fileName = `${Date.now()}.mov`;
+    const fileRef = ref(storage, `audio_files/${fileName}`);
+    
+    // Convert the video into a blob using Expo's FileSystem
+    const response = await fetch(fileUri);
+    const blob = await response.blob();
+    
+    // Upload the blob to Firebase
+    await uploadBytes(fileRef, blob);
+  
+    // Get the download URL
+    const downloadUrl = await getDownloadURL(fileRef);
+    console.log("File uploaded to Firebase. Download URL:", downloadUrl);
+  
+    return downloadUrl;
   };
 
   const progressWidth = ((currentIndex + 1) * (screenWidth/5));
@@ -219,46 +230,37 @@ export default function Record() {
           >
             <Text style={styles.CVPlayButtonText}>Play Word</Text>
           </TouchableOpacity>
-
+              
           {/* Video Thumbnail */}
-      
           {videoUri && (
-            <TouchableOpacity 
-              style={styles.thumbnailContainer} 
-              onPress={() => videoRef.current?.presentFullscreenPlayer()}
-            >
-              <Video
-                ref={(ref) => (videoRef.current = ref)} 
-                source={{ uri: videoUri }}
-                style={styles.thumbnail}
-                resizeMode={ResizeMode.COVER}
-                useNativeControls
-              />
-            </TouchableOpacity>
-          )}
-        </View>
+          <TouchableOpacity 
+            style={styles.thumbnailContainer} 
+            onPress={() => videoRef.current?.presentFullscreenPlayer()}
+          >
+            <Video
+              ref={(ref) => (videoRef.current = ref)} 
+              source={{ uri: videoUri }}
+              style={styles.thumbnail}
+              resizeMode={ResizeMode.COVER}
+              useNativeControls
+            />
+          </TouchableOpacity>
+        )}
+      </View>
 
       {/* Buttons */}
       <View style={styles.buttonContainer}>
-        <TouchableOpacity style={[styles.button, isRecording && styles.recordingButton]} onPress={toggleRecording} disabled={showComputerVision}>
+        <TouchableOpacity style={[styles.button, isRecording && styles.recordingButton]} onPress={toggleRecording}>
           <Text style={styles.text}>{isRecording ? "Stop" : "Record"}</Text>
         </TouchableOpacity>
 
         <TouchableOpacity 
-          style={styles.button}
+          style={[styles.button, !videoUri && styles.disabledButton]}
           onPress={sendAudioToBackend}  // Call sendAudioToBackend here to submit the audio
-          disabled={!videoUri || showComputerVision}
+          disabled={!videoUri}
         >
           <Text style={styles.text}>Get Feedback</Text>
         </TouchableOpacity>
-
-        {/* just testing out the audio playback capabilities */}
-        {/* <TouchableOpacity 
-          style={styles.button}
-          //onPress={sendAudioToBackend}> below sends 0 for score and "" for feedback by default atm
-          onPress={playAudio}> 
-          <Text style={styles.text}>Play Audio</Text>
-        </TouchableOpacity> */}
       </View>
       </View>
     </View>
@@ -268,7 +270,7 @@ export default function Record() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#88C040",
+    backgroundColor: "#A4D65E",
     justifyContent: "center",
     alignItems: "center",
   },
@@ -372,6 +374,9 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     minWidth: screenWidth * 0.3,
   },
+  disabledButton: {
+    backgroundColor: "#ccc", // Greyed out when disabled
+  },
   recordingButton: {
     backgroundColor: "red",
   },
@@ -422,3 +427,4 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
   },
 });
+
