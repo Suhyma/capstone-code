@@ -136,10 +136,8 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#A4D65E", // Green background
-    // flexDirection: "column",
     justifyContent: "center",
     alignItems: "center",
-    // padding: 50,
   },
   progressBarContainer: {
     width: "100%",
