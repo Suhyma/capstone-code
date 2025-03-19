@@ -200,7 +200,7 @@ export default function Record() {
         <View 
             style={[
               styles.cameraContainer,
-              isPortrait ? { width: "90%", height: screenHeight * 0.5 } 
+              isPortrait ? { width: "90%", height: screenHeight * 0.7 } 
                          : { width: screenWidth * 0.8, height: "80%" }
             ]}
           >
