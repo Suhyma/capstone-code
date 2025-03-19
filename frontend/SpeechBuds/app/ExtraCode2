@@ -1,0 +1,169 @@
+import React, { useRef, useState, useEffect } from "react";
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Dimensions, SafeAreaView, Image} from "react-native";
+import { useNavigation } from "@react-navigation/native";
+import { StackParamList } from './types';
+import { StackNavigationProp } from '@react-navigation/stack';
+import { useNavigate } from "./hooks/useNavigate";
+//import { useGarden } from "./GardenContent";
+//import { GardenProvider } from "./GardenContent";
+
+// Get screen width and height for responsiveness
+const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
+
+const ChildHomeScreen = () => {
+  //const { gardenState, setGardenState, plantedItems, setPlantedItems } = useGarden();
+  const { navigateTo } = useNavigate(); // Get the function
+  //const { plantedItems } = useGarden();
+  const [screenWidth, setScreenWidth] = useState(Dimensions.get("window").width);
+  const [screenHeight, setScreenHeight] = useState(Dimensions.get("window").height);
+  const [isPortrait, setIsPortrait] = useState(screenHeight > screenWidth);
+  
+  useEffect(() => {
+    // checking screen dimensions
+    const updateDimensions = () => {
+      const newWidth = Dimensions.get("window").width;
+      const newHeight = Dimensions.get("window").height;
+      setScreenWidth(newWidth);
+      setScreenHeight(newHeight);
+      setIsPortrait(newHeight > newWidth);
+    };
+  
+      // check for changes in dimensions
+        updateDimensions();
+        const subscription = Dimensions.addEventListener("change", updateDimensions);
+        return () => subscription.remove();
+     
+      }, []);
+
+  return (
+    <SafeAreaView style={styles.container}>
+
+      {/*Sign Out Button*/}
+      <TouchableOpacity 
+        style={styles.signOutButton} 
+        onPress={() => navigateTo("Login")}>
+      <Text style={styles.signOutText}>Sign Out</Text>
+      </TouchableOpacity>
+
+      {/* Left Section - Garden Grid */}
+      <View style={styles.gardenContainer}>
+        <View style={styles.gardenBox}>
+          <Text style={styles.emoji}>🌽🌽🌽🌽</Text>
+          <Text style={styles.emoji}>🌽🌽🌽🌽</Text>
+          <Text style={styles.emoji}>🌸🌸🌸🌸</Text>
+          <Text style={styles.emoji}>🍓🍓🍓🍓</Text>
+          <TouchableOpacity
+              style={styles.plantingButton}
+              onPress={() => navigateTo("GardenGame")}
+            >
+              <Text style={styles.plantingButtonText}>Let's plant your garden!</Text>
+            </TouchableOpacity>
+        </View>
+      </View>
+
+      {/* Right Section - Task List */}
+      <View style={styles.taskListContainer}>
+        <Text style={styles.header}>Assigned Exercises</Text>
+
+        <ScrollView>
+          {tasks.map((task, index) => (
+            <TouchableOpacity
+              key={index}
+              style={styles.taskCard}
+              onPress={() => navigateTo("Demo", { wordSet: task.words, currentIndex: 0})}
+            >
+              <Text style={styles.taskTitle}>{task.title}</Text>
+              <Text style={styles.taskDetails}>Due Date: {task.dueDate}</Text>
+              <Text style={styles.taskDetails}>Seeds Available: {task.seeds}</Text>
+            </TouchableOpacity>
+          ))}
+        </ScrollView>
+      </View>
+    </SafeAreaView>
+  );
+};
+
+const tasks = [
+  { title: 'S Sound Initial', dueDate: 'March 21, 2025', seeds: 55,  words: ['Summer', 'Stain', 'Silly', 'Sock', 'Say'], wordCount: 0 },
+  { title: 'R Sound Medial', dueDate: 'March 21, 2025', seeds: 55,  words: ['Carrot', 'Berry', 'Corn', 'Arrow', 'Parent'], wordCount: 0},
+];
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    flexDirection: "row", // Set main layout to row
+    backgroundColor: "#A4D65E", // Green background
+    padding: 10,
+  },
+  gardenContainer: {
+    flex: 1, // Takes half the screen
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  gardenBox: {
+    width: "90%",
+    height: "90%",
+    backgroundColor: "#D9B382", // Brown background
+    borderRadius: 10,
+    padding: 10,
+    alignItems: "center",
+  },
+  plantedItem: {
+    width: 5,
+    height: 5,
+  },
+  emoji: {
+    fontSize: 5,
+  },
+  taskListContainer: {
+    flex: 1, // Takes half the screen
+    padding: 10,
+  },
+  header: {
+    fontSize: 24,
+    fontWeight: "bold",
+    marginBottom: 10,
+  },
+  taskCard: {
+    backgroundColor: "#B48A5A",
+    padding: 12,
+    borderRadius: 8,
+    marginBottom: 10,
+  },
+  taskTitle: {
+    fontSize: 18,
+    fontWeight: "bold",
+  },
+  taskDetails: {
+    fontSize: 14,
+    color: "#444",
+  },
+  plantingButton: {
+    position: "absolute",
+    bottom: 10,
+    right: 15, 
+    backgroundColor: "#5A3E1B",
+    borderRadius: 5,
+    padding: 5,
+  },
+  plantingButtonText: {
+    color: "white",
+    fontWeight: "bold",
+  },
+  signOutButton: {
+    position: "absolute",
+    top: 15,
+    right: 15, 
+    backgroundColor: "#5A3E1B",
+    borderRadius: 5,
+    padding: 5,
+  },
+  signOutText: {
+    color: "white",
+    fontWeight: "bold",
+    fontSize: 16,
+  },
+});
+
+
+export default ChildHomeScreen;

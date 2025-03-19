@@ -1,8 +1,10 @@
+import React from "react";
 import { createStackNavigator, StackNavigationProp } from '@react-navigation/stack';
 import { NavigationContainer } from '@react-navigation/native';
+import { StackParamList } from './types';
+
 import Index from './index';
 import Login from './Login';
-import { StackParamList } from './types';
 import ChildHomeScreen from './ChildHomeScreen'
 import Demo from './Demo';
 import Feedback from './Feedback';
@@ -11,8 +13,9 @@ import Record_CV from './Record_CV';
 import SLPHomeScreen from './SLPHomeScreen';
 import Clients from './Clients';
 import Exercises from './Exercises';
+import GardenScreen from './GardenGame';
 
-const Stack = createStackNavigator<StackParamList>();
+const Stack = createStackNavigator();
 
 export default function App() {
   return (
@@ -28,6 +31,7 @@ export default function App() {
         <Stack.Screen name="Feedback" component={Feedback} options={{ title: 'Feedback' }} />
         <Stack.Screen name="Clients" component={Clients} options={{ title: 'Clients'}} />
         <Stack.Screen name="Exercises" component={Exercises} options={{ title: 'Exercises'}} />
+        <Stack.Screen name="GardenGame" component={GardenScreen} options={{ title: 'GardenGame'}}/>
       </Stack.Navigator>
     </NavigationContainer>
   );

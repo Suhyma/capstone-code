@@ -1,32 +1,48 @@
-import React from "react";
-import {
-  View,
-  Text,
-  StyleSheet,
-  TouchableOpacity,
-  Image,
-  Dimensions,
-  SafeAreaView,
-} from "react-native";
+import {View, Text, StyleSheet, TouchableOpacity, Image, Dimensions, SafeAreaView} from "react-native";
 import { StackNavigationProp } from "@react-navigation/stack";
 import { useNavigation } from "@react-navigation/native";
 import { StackParamList } from "./types";
 import { useRoute } from "@react-navigation/native";
+import React, { useRef, useState, useEffect } from "react";
 
 type NavigationProp = StackNavigationProp<StackParamList, "Index">;
 
 // Get screen width and height for responsiveness
-const { width, height } = Dimensions.get("window");
+const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
 
 export default function Index() {
   const navigation = useNavigation<NavigationProp>();
+  const [screenWidth, setScreenWidth] = useState(Dimensions.get("window").width);
+  const [screenHeight, setScreenHeight] = useState(Dimensions.get("window").height);
+  const [isPortrait, setIsPortrait] = useState(screenHeight > screenWidth);
+
+  useEffect(() => {
+    // checking screen dimensions
+    const updateDimensions = () => {
+      const newWidth = Dimensions.get("window").width;
+      const newHeight = Dimensions.get("window").height;
+      setScreenWidth(newWidth);
+      setScreenHeight(newHeight);
+      setIsPortrait(newHeight > newWidth);
+    };
+
+     // check for changes in dimensions
+        updateDimensions();
+        const subscription = Dimensions.addEventListener("change", updateDimensions);
+        return () => subscription.remove();
+    
+      }, []);
 
   return (
     <SafeAreaView style={styles.container}>
       {/* Green Background */}
       <View style={styles.background}>
         {/* Brown Rectangle */}
-        <View style={styles.rectangle}>
+        <View style={[styles.rectangle,
+            isPortrait ? { width: "80%", height: screenHeight * 0.8 } 
+            : { width: screenWidth * 0.8, height: "80%" }
+        ]}>
+          
           {/* "Speech Buds" Text */}
           <Text style={styles.title}>SPEECH BUDS</Text>
 
@@ -59,9 +75,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   rectangle: {
-    width: width * 0.9,
-    maxWidth: 400,
-    height: height * 0.7, // Scales better on small screens
     backgroundColor: "#CDA879", // Card background
     borderWidth: 3,
     borderColor: "#684503",
@@ -76,29 +89,29 @@ const styles = StyleSheet.create({
   },
   flower: {
     position: "absolute",
-    top: height * 0.02,
-    left: width * 0.05,
-    width: width * 0.2,
-    height: height * 0.15,
+    top: screenHeight * 0.02,
+    left: screenWidth * 0.05,
+    width: screenWidth * 0.2,
+    height: screenHeight * 0.15,
     resizeMode: "contain",
   },
   corn: {
     position: "absolute",
-    top: height * 0.15,
-    right: width * 0.05,
-    width: width * 0.15,
-    height: height * 0.12,
+    top: screenHeight * 0.15,
+    right: screenWidth * 0.05,
+    width: screenWidth * 0.15,
+    height: screenHeight * 0.12,
     resizeMode: "contain",
   },
   strawberry: {
     position: "absolute",
-    bottom: height * 0.05,
-    width: width * 0.18,
-    height: height * 0.12,
+    bottom: screenHeight * 0.05,
+    width: screenWidth * 0.25,
+    height: screenHeight * 0.25,
     resizeMode: "contain",
   },
   title: {
-    fontSize: width * 0.1,
+    fontSize: screenWidth * 0.1,
     fontWeight: "bold",
     color: "#000", // Black text
     textAlign: "center",
@@ -120,7 +133,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   buttonText: {
-    fontSize: width * 0.05,
+    fontSize: screenWidth * 0.05,
     fontWeight: "bold",
     color: "#000", // Black text
   },
