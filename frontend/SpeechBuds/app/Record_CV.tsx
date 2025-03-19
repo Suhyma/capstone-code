@@ -37,7 +37,6 @@ export default function Record() {
   {/*Stuff that is necessary for CV features*/}
   const [audioUri, setAudioUri] = useState<string | null>(null);
   const [audioRecording, setAudioRecording] = useState<Audio.Recording | null>(null);
-  const [isButtonDisabled, setIsButtonDisabled] = useState(false);
   const [showComputerVision, setShowComputerVision] = useState(false); // Toggle state
 
   const cameraRef = useRef<CameraView>(null);
@@ -239,19 +238,16 @@ export default function Record() {
           )}
         </View>
 
-
-
-
-
       {/* Buttons */}
       <View style={styles.buttonContainer}>
-        <TouchableOpacity style={[styles.button, isRecording && styles.recordingButton]} onPress={toggleRecording} disabled={isButtonDisabled}>
+        <TouchableOpacity style={[styles.button, isRecording && styles.recordingButton]} onPress={toggleRecording} disabled={showComputerVision}>
           <Text style={styles.text}>{isRecording ? "Stop" : "Record"}</Text>
         </TouchableOpacity>
 
         <TouchableOpacity 
           style={styles.button}
           onPress={sendAudioToBackend}  // Call sendAudioToBackend here to submit the audio
+          disabled={!videoUri || showComputerVision}
         >
           <Text style={styles.text}>Get Feedback</Text>
         </TouchableOpacity>

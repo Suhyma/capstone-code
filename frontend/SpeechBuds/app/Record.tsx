@@ -30,7 +30,6 @@ export default function Record() {
   const [isRecording, setIsRecording] = useState(false);
   const [videoUri, setVideoUri] = useState<string | null>(null);
 
-  const [isButtonDisabled, setIsButtonDisabled] = useState(false);
   const [screenWidth, setScreenWidth] = useState(Dimensions.get("window").width);
   const [screenHeight, setScreenHeight] = useState(Dimensions.get("window").height);
   const [isPortrait, setIsPortrait] = useState(screenHeight > screenWidth);
@@ -125,7 +124,7 @@ export default function Record() {
       console.log("Sending video URL to backend...");
   
       const response = await axios.post(
-        "https://3e68-24-114-29-182.ngrok-free.app/api/submit_audio/",
+        "https://bcac-2620-101-f000-7c0-00-10eb.ngrok-free.app/api/submit_audio/",
         formData,
         {
           headers: {
