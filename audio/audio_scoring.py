@@ -112,6 +112,7 @@ def get_score(prediction):
     # need to test score sensitivity
 
     final_score = max(0, raw_score)  # ensure score is not negative
+    final_score = final_score * 100
     return final_score, extra_phonemes, missing_phonemes
 
 
