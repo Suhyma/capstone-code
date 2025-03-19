@@ -17,10 +17,14 @@ from .permissions import IsSLP, IsPatientOrSLP, IsPatient
 from rest_framework.parsers import MultiPartParser, FormParser
 from django.http import JsonResponse
 from rest_framework_simplejwt.views import TokenObtainPairView
+from django.core.files import File
+import requests
+import tempfile
+import logging
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..")))
 
-from audio.phoneme_extraction import extract_phonemes  # Import the phoneme extraction function
+from audio.phoneme_extraction import extract_phonemes, convert_mov_to_wav  # Import the phoneme extraction function
 from audio.phonemes import phoneme_bank_split
 from audio.audio_scoring import get_score  # Import the scoring function
 from audio.audio_feedback import generate_feedback_for_target
@@ -88,38 +92,76 @@ def login_user(request):
 class CustomTokenObtainPairView(TokenObtainPairView):
     serializer_class = CustomTokenObtainPairSerializer
 
+
+logger = logging.getLogger(__name__)
 # uploading audio
 @api_view(['POST'])
-@authentication_classes([])  # Disable authentication
-@permission_classes([])  # Disable permissions
+@authentication_classes([])  # Disable authentication for now
+@permission_classes([])  # Disable permissions for now
 def submit_audio(request):
     """
     Endpoint for patients to submit their recorded audio for processing.
     """
-    parser_classes = [MultiPartParser]
-
-    print(request.FILES)  # Debugging line to see what files are being uploaded
-    if 'audio_file' not in request.FILES:
-        return JsonResponse({'error': 'No audio file provided'}, status=400)
-
-    audio_file = request.FILES['audio_file']
-    audio_instance = AudioFile.objects.create(file=audio_file)
+    # Expecting the download URL from the frontend
+    uri = request.data.get('audio_file')
+    if not uri:
+        logger.error("No audio URL provided")
+        return Response({'error': 'No audio URL provided'}, status=400)
 
     try:
-        
-        phoneme_results = extract_phonemes(audio_instance.file)
-        score, extra_phonemes, missing_phonemes = get_score(phoneme_results)
-        feedback = []
-        for extra, target in zip(extra_phonemes, missing_phonemes):
-            feedback.extend(generate_feedback_for_target(extra, target))
+        # Step 1: Download the .mov file from the Firebase URL
+        logger.debug(f"Downloading audio from URL: {uri}")
+        response = requests.get(uri)
+        if response.status_code != 200:
+            logger.error(f"Failed to fetch audio from URL: {uri}")
+            return Response({'error': 'Failed to fetch audio from URL'}, status=400)
 
-    finally:
-        audio_instance.file.delete(save=False)  # This removes the file from the filesystem
-        audio_instance.delete()  # Optionally remove the AudioFile instance itself
+        # Step 2: Save the file to a temporary location in a controlled directory
+        temp_dir = '/tmp'
+        file_name = 'audio.mov'  # Set a fixed name to avoid path traversal
+        tmp_file_path = os.path.join(temp_dir, file_name)
 
-    return JsonResponse({
-        'feedback': feedback,
-    })
+        with open(tmp_file_path, 'wb') as tmp_file:
+            tmp_file.write(response.content)
+
+        logger.debug(f"Temporary .mov file saved at: {tmp_file_path}")
+
+        # Step 3: Convert .mov to .wav
+        wav_file = tmp_file_path.replace('.mov', '.wav')
+        try:
+            logger.debug(f"Converting .mov file to .wav: {wav_file}")
+            convert_mov_to_wav(tmp_file_path, wav_file)
+        except Exception as e:
+            logger.error(f"Error during .mov to .wav conversion: {e}")
+            return Response({'error': f'Error during .mov to .wav conversion: {str(e)}'}, status=500)
+
+        # Step 4: Process the .wav file (phoneme extraction, scoring, feedback)
+        audio_instance = None
+        try:
+            # Ensure the audio instance is created correctly before proceeding
+            logger.debug("Creating AudioFile instance")
+            audio_instance = AudioFile.objects.create(file=File(open(wav_file, 'rb')))
+            phoneme_results = extract_phonemes(audio_instance.file)
+            logger.debug("Phoneme extraction successful")
+            score, extra_phonemes, missing_phonemes = get_score(phoneme_results)
+            feedback = []
+            for extra, target in zip(extra_phonemes, missing_phonemes):
+                feedback.extend(generate_feedback_for_target(extra, target))
+            logger.debug(f"Feedback generated: {feedback}")
+        except Exception as e:
+            logger.error(f"Error during audio processing: {e}")
+            return Response({'error': f'Error during audio processing: {str(e)}'}, status=500)
+        finally:
+            if audio_instance:
+                audio_instance.file.delete(save=False)  # Remove the file after processing
+                audio_instance.delete()  # Optionally delete the AudioFile instance
+
+        # Step 5: Return feedback and score
+        return Response({'score': score, 'feedback': feedback})
+
+    except Exception as e:
+        logger.error(f"Error during audio submission: {e}")
+        return Response({'error': f'Error: {str(e)}'}, status=500)
 
 # patient viewing own final scores
 class FinalScoreView(APIView):

@@ -27,7 +27,7 @@ SECRET_KEY = "django-insecure-iwdsw@)x-$=8rf7as7p^8d1q2yvkk=a8j^b9l^kf#)(l-bzqr_
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['localhost', '127.0.0.1', '10.36.104.178', '172.20.10.2', '10.2.0.2', '55f6-2620-101-f000-7c0-00-30eb.ngrok-free.app']
+ALLOWED_HOSTS = ['localhost', '127.0.0.1', '10.36.104.178', '172.20.10.2', '10.2.0.2', 'c584-72-138-72-162.ngrok-free.app']
 
 
 # Application definition
@@ -68,7 +68,7 @@ ROOT_URLCONF = "config.urls"
 
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:8081",  # Add the correct URL for your frontend
-    "https://55f6-2620-101-f000-7c0-00-30eb.ngrok-free.app",
+    "https://c584-72-138-72-162.ngrok-free.app",
 ]
 
 CORS_ALLOW_CREDENTIALS = True
@@ -147,3 +147,18 @@ STATIC_URL = "static/"
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'handlers': {
+        'console': {
+            'level': 'DEBUG',
+            'class': 'logging.StreamHandler',
+        },
+    },
+    'root': {
+        'handlers': ['console'],
+        'level': 'DEBUG',
+    },
+}

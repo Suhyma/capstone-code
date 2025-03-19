@@ -9,7 +9,9 @@ import { Audio } from 'expo-av';
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import axios, { AxiosResponse } from 'axios';
 import * as FileSystem from 'expo-file-system';
-import RNFetchBlob from 'rn-fetch-blob';
+import RNFetchBlob, { PolyfillBlob } from 'rn-fetch-blob';
+import { storage, ref, uploadBytes } from '../services/firebase'
+import { getDownloadURL } from 'firebase/storage';
 
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
@@ -111,36 +113,57 @@ export default function Record() {
     }
   
     try {
-      console.log("Fetching response from: ", videoUri);
+      console.log("Uploading video to Firebase from URI:", videoUri);
   
-      // Prepare the file and MIME type
-      const filePath = videoUri;
-      const mimeType = 'video/quicktime'; // Use 'video/mp4' for mp4 files
+      // Upload video to Firebase using URI directly
+      const downloadUri = await uploadToFirebase(videoUri); 
   
-      // Use RNFetchBlob to handle the file upload
-      const response = await RNFetchBlob.fetch('POST', 'https://55f6-2620-101-f000-7c0-00-30eb.ngrok-free.app/api/submit_audio/', {
-        'Content-Type': 'multipart/form-data',
-        // Authorization: `Bearer ${token}`, // Add your token here if needed
-      }, [
-        { name: 'audio_file', filename: 'recording.mov', data: RNFetchBlob.wrap(filePath) },
-      ]);
+      // Prepare the FormData with the Firebase download URL
+      const formData = new FormData();
+      formData.append("audio_file", downloadUri);
   
-      console.log("Response received:", response?.data);
+      console.log("Sending video URL to backend...");
   
-      // Process the response if available
-      const responseData = JSON.parse(response.data); // Parse the response data
+      const response = await axios.post(
+        "https://c584-72-138-72-162.ngrok-free.app/api/submit_audio/",
+        formData,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        }
+      );
   
-      // Navigate to the feedback screen with the response data
+      console.log("Response from backend:", response?.data);
       navigateTo("Feedback", {
         wordSet,
         currentIndex,
         attemptNumber,
-        score: responseData?.score || 0,
-        feedback: responseData?.feedback || "",
+        score: response?.data?.score || 0,
+        feedback: response?.data?.feedback || "",
       });
     } catch (error) {
       console.error("Error submitting video:", error);
     }
+  };
+  
+  // Helper function to upload file to Firebase Storage
+  const uploadToFirebase = async (fileUri: string) => {
+    const fileName = `${Date.now()}.mov`;
+    const fileRef = ref(storage, `audio_files/${fileName}`);
+    
+    // Convert the video into a blob using Expo's FileSystem
+    const response = await fetch(fileUri);
+    const blob = await response.blob();
+    
+    // Upload the blob to Firebase
+    await uploadBytes(fileRef, blob);
+  
+    // Get the download URL
+    const downloadUrl = await getDownloadURL(fileRef);
+    console.log("File uploaded to Firebase. Download URL:", downloadUrl);
+  
+    return downloadUrl;
   };
 
   const progressWidth = ((currentIndex + 1) * (screenWidth/5));
