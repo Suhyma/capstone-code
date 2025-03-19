@@ -27,4 +27,10 @@ def generate_feedback_for_target(extra_phoneme, target_phoneme):
     else:
         feedback.append(f"No specific feedback for correcting {extra_phoneme} to {target_phoneme}.")
     
-    return feedback
+    # Join the feedback list into a single string
+    feedback_string = " ".join(feedback)
+    
+    # Format the feedback by removing commas and adding a space after each period
+    feedback_string = feedback_string.replace(",", "").replace(". ", ".\n")
+
+    return feedback_string

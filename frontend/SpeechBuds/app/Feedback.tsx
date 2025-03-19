@@ -8,7 +8,7 @@ import { useRoute } from "@react-navigation/native";
 const FeedbackScreen = () => {
   const { navigateTo } = useNavigate();
   const route = useRoute();
-  const { wordSet, currentIndex, attemptNumber, feedback } = route.params as { wordSet: string[], currentIndex: number, attemptNumber: number, feedback: string};
+  const { wordSet, currentIndex, attemptNumber, feedback, score } = route.params as { wordSet: string[], currentIndex: number, attemptNumber: number, feedback: string, score: number};
 
   const [isExerciseComplete, setIsExerciseComplete] = useState(false)
   const isLastWord = currentIndex >= wordSet.length - 1;
@@ -35,8 +35,10 @@ const FeedbackScreen = () => {
 
         {/* Feedback Text */}
         <Text style={styles.feedbackText}>
-          {/* Try separating your lips a little without making an ‘o’ shape. */}
-          {feedback}
+          {"Score: " + score}
+        </Text>
+        <Text style={styles.feedbackText}>
+          {"Feedback: " + feedback}
         </Text>
 
         {/* Tip Section
