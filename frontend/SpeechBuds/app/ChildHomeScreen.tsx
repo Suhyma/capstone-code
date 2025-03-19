@@ -204,15 +204,15 @@ const styles = StyleSheet.create({
   },
 
   assignedExercisesTitle: {
-    fontSize: 24,
+    fontSize: 30,
     fontWeight: "bold",
     textAlign: "center",  // Centering the title
     marginBottom: 10,
   },
 
   taskCard: { backgroundColor: "#B48A5A", padding: 12, borderRadius: 8, marginBottom: 10 },
-  taskTitle: { fontSize: 18, fontWeight: "bold" },
-  taskDetails: { fontSize: 14, color: "#444" },
+  taskTitle: { fontSize: 20, fontWeight: "bold", padding: 12 },
+  taskDetails: { fontSize: 16, color: "#444" },
 
   gardenWrapper: { 
     flex: 1,  // Takes up the bottom half of the screen
