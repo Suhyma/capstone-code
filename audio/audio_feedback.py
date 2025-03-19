@@ -4,12 +4,12 @@ feedback_dictionaries = {
     "ɹ": {
         "w": "Try starting with closed lips. Then lift your lips just slightly apart without making an 'o' shape. Focus on keeping your teeth close together with your tongue tip slightly hovering.",
         "l": "Try lowering the tip of your tongue and keeping it stationary. Make the sound only moving your jaw",
-        "d": "Focus on curling your tongue upward and back while voicing the sound."
+        "d": "Focus on keeping your tongue downwards and back while voicing the sound."
     },
     "s": {
-        "ʃ": "Try to keep your tongue tip closer to your lower teeth.",
-        "z": "Avoid voicing; let the airflow remain unvoiced.",
-        "θ": "Bring your tongue closer to the alveolar ridge for a sharper sound."
+        "ʃ": "Try to keep your lips flat instead of round. Also keep your tongue tip closer to your lower teeth.",
+        "z": "Touch your throat while you practice, you shouldn't feel any vibrations when pronouncing 's'",
+        "θ": "Bring your tongue far enough behind your teeth so your tongue doesn't touch your teeth."
     },
     "t": {
         "d": "Make sure to cut off voicing and release a sharper burst of air.",
