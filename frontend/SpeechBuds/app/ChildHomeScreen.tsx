@@ -190,8 +190,8 @@ const ChildHomeScreen = () => {
 };
 
 const tasks = [
-  { title: "S Sound Initial", dueDate: "March 21, 2025", seeds: 55, words: ["Summer", "Stain", "Silly", "Sock", "Say"] },
-  { title: "R Sound Medial", dueDate: "March 21, 2025", seeds: 55, words: ["Carrot", "Berry", "Corn", "Arrow", "Parent"] },
+  { title: "S Sound Initial Exercises", dueDate: "March 21, 2025", seeds: 55, words: ["Summer", "Stain", "Silly", "Sock", "Say"] },
+  { title: "R Sound Medial Exercises", dueDate: "March 21, 2025", seeds: 55, words: ["Carrot", "Berry", "Corn", "Arrow", "Parent"] },
 ];
 
 const styles = StyleSheet.create({

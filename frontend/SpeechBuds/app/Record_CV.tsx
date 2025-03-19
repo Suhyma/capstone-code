@@ -318,7 +318,7 @@ const styles = StyleSheet.create({
   },
   exitButton: {
     position: "absolute",
-    top: -25,
+    top: -15,
     right: 15, 
     backgroundColor: "#5A3E1B",
     borderRadius: 5,
@@ -326,7 +326,7 @@ const styles = StyleSheet.create({
   },
   backButton: {
     position: "absolute",
-    top: -25,
+    top: -15,
     left: 15, 
     backgroundColor: "#5A3E1B",
     borderRadius: 5,
