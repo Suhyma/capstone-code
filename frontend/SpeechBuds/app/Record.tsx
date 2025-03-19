@@ -30,7 +30,6 @@ export default function Record() {
   const [isRecording, setIsRecording] = useState(false);
   const [videoUri, setVideoUri] = useState<string | null>(null);
 
-  const [isButtonDisabled, setIsButtonDisabled] = useState(false);
   const [screenWidth, setScreenWidth] = useState(Dimensions.get("window").width);
   const [screenHeight, setScreenHeight] = useState(Dimensions.get("window").height);
   const [isPortrait, setIsPortrait] = useState(screenHeight > screenWidth);
