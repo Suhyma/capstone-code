@@ -23,7 +23,7 @@ def generate_feedback_for_target(extra_phoneme, target_phoneme):
     feedback = []
    
     if extra_phoneme in feedback_dict:
-        feedback.append(f"To improve your {target_phoneme} sound: {feedback_dict[extra_phoneme]}")
+        feedback.append(f"To improve the sound: {feedback_dict[extra_phoneme]}")
     else:
         feedback.append(f"No specific feedback for correcting {extra_phoneme} to {target_phoneme}")
     
