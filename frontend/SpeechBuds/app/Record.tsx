@@ -196,17 +196,17 @@ export default function Record() {
           </TouchableOpacity>
         </View>
 
-      {/* Camera View */}
-      <View 
-          style={[
-            styles.cameraContainer,
-            isPortrait ? { width: "90%", height: screenHeight * 0.5 } 
-                       : { width: screenWidth * 0.8, height: "80%" }
-          ]}
-        >
-          <CameraView ref={cameraRef} style={styles.camera} mode="video" facing={facing} />
+        {/* Camera View */}
+        <View 
+            style={[
+              styles.cameraContainer,
+              isPortrait ? { width: "90%", height: screenHeight * 0.5 } 
+                         : { width: screenWidth * 0.8, height: "80%" }
+            ]}
+          >
+            <CameraView ref={cameraRef} style={styles.camera} mode="video" facing={facing} />
               
-          {/* Video Thumbnail */}
+        {/* Video Thumbnail */}
           {videoUri && (
           <TouchableOpacity 
             style={styles.thumbnailContainer} 
@@ -220,23 +220,23 @@ export default function Record() {
               useNativeControls
             />
           </TouchableOpacity>
-        )}
-      </View>
+          )}
+        </View>
 
-      {/* Buttons */}
-      <View style={styles.buttonContainer}>
-        <TouchableOpacity style={[styles.button, isRecording && styles.recordingButton]} onPress={toggleRecording}>
-          <Text style={styles.text}>{isRecording ? "Stop" : "Record"}</Text>
-        </TouchableOpacity>
+        {/* Buttons */}
+        <View style={styles.buttonContainer}>
+          <TouchableOpacity style={[styles.button, isRecording && styles.recordingButton]} onPress={toggleRecording}>
+            <Text style={styles.text}>{isRecording ? "Stop" : "Record"}</Text>
+          </TouchableOpacity>
 
-        <TouchableOpacity 
-          style={[styles.button, !videoUri && styles.disabledButton]}
-          onPress={sendAudioToBackend}  // Call sendAudioToBackend here to submit the audio
-          disabled={!videoUri}
-        >
-          <Text style={styles.text}>Get Feedback</Text>
-        </TouchableOpacity>
-      </View>
+          <TouchableOpacity 
+            style={[styles.button, !videoUri && styles.disabledButton]}
+            onPress={sendAudioToBackend}  // Call sendAudioToBackend here to submit the audio
+            disabled={!videoUri}
+          >
+            <Text style={styles.text}>Get Feedback</Text>
+          </TouchableOpacity>
+        </View>
       </View>
     </View>
   );
@@ -253,23 +253,23 @@ const styles = StyleSheet.create({
     flex: 1,
     width: screenWidth * 0.9,
     height: screenHeight * 0.9,
-    flexDirection: "column",
-    justifyContent: "center",
+    //flexDirection: "column",
+    //justifyContent: "center",
     alignItems: "center",
     backgroundColor: "#D9B382",
     borderRadius: 10,
     borderWidth: 2,
     borderColor: '#684503',
-    overflow: "visible",
+    overflow: "hidden",
     marginTop: 50,
     marginBottom: 50,
   },
   header: {
-    flexDirection: "row",
-    justifyContent: "space-between",
+    //flexDirection: "row",
+    //justifyContent: "space-between",
     alignItems: "center",
     //paddingHorizontal: 20,
-    //paddingVertical: 10,
+    paddingVertical: 10,
     width: "100%",
     backgroundColor: "#D9B382",
   },
@@ -280,6 +280,7 @@ const styles = StyleSheet.create({
     textAlign: "center",
     overflow: "visible",
     marginBottom: 10,
+    marginTop: 35
   },
   progressBarContainer: {
     width: "100%",
@@ -293,7 +294,7 @@ const styles = StyleSheet.create({
   },
   exitButton: {
     position: "absolute",
-    top: -15,
+    top: 10,
     right: 15, 
     backgroundColor: "#5A3E1B",
     borderRadius: 5,
@@ -301,7 +302,7 @@ const styles = StyleSheet.create({
   },
   backButton: {
     position: "absolute",
-    top: -15,
+    top: 10,
     left: 15, 
     backgroundColor: "#5A3E1B",
     borderRadius: 5,
