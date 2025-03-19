@@ -261,8 +261,8 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     borderColor: '#684503',
     overflow: "visible",
-    marginTop: 50,
-    marginBottom: 50,
+    //marginTop: 50,
+    //marginBottom: 50,
   },
   header: {
     flexDirection: "row",
