@@ -29,7 +29,7 @@ def decode_phonemes(ids: torch.Tensor, processor: Wav2Vec2Processor, ignore_stre
     return prediction
 
 def play_audio(audio_array, sr):
-    sd.play(audio_array, sr)
+    sd.play(audio_array, sr, device = 1)
     sd.wait()
 
 def convert_mov_to_wav(input_path):
@@ -66,7 +66,7 @@ def extract_phonemes(audiofile):
     # audio_array, _ = librosa.load(audiofile.path, sr=sr)
     audio_array, _ = librosa.load(wav_path, sr=sr)
     print(f"Audio file loaded. Sample rate: {sr}, Audio length: {len(audio_array)} samples")
-    play_audio(audio_array, sr)
+    # play_audio(audio_array, sr)
     inputs = processor(audio_array, return_tensors="pt", padding="longest", truncation=True, max_length=35000)
 
     with torch.no_grad():
