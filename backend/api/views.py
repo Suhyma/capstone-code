@@ -116,47 +116,43 @@ def submit_audio(request):
             logger.error(f"Failed to fetch audio from URL: {uri}")
             return Response({'error': 'Failed to fetch audio from URL'}, status=400)
 
-        # Step 2: Save the file to a temporary location in a controlled directory
-        temp_dir = '/tmp'
-        file_name = 'audio.mov'  # Set a fixed name to avoid path traversal
-        tmp_file_path = os.path.join(temp_dir, file_name)
+        # Step 2: Create temporary files for .mov and .wav
+        with tempfile.NamedTemporaryFile(delete=False, suffix='.mov') as tmp_mov_file:
+            tmp_mov_file.write(response.content)
+            tmp_mov_path = tmp_mov_file.name
 
-        with open(tmp_file_path, 'wb') as tmp_file:
-            tmp_file.write(response.content)
+        logger.debug(f"Temporary .mov file saved at: {tmp_mov_path}")
 
-        logger.debug(f"Temporary .mov file saved at: {tmp_file_path}")
-
-        # Step 3: Convert .mov to .wav
-        wav_file = tmp_file_path.replace('.mov', '.wav')
+        tmp_wav_path = tempfile.mktemp(suffix='.wav')
         try:
-            logger.debug(f"Converting .mov file to .wav: {wav_file}")
-            convert_mov_to_wav(tmp_file_path, wav_file)
+            logger.debug(f"Converting .mov to .wav")
+            tmp_wav_path = convert_mov_to_wav(tmp_mov_path)
         except Exception as e:
             logger.error(f"Error during .mov to .wav conversion: {e}")
             return Response({'error': f'Error during .mov to .wav conversion: {str(e)}'}, status=500)
 
-        # Step 4: Process the .wav file (phoneme extraction, scoring, feedback)
-        audio_instance = None
+        # Step 3: Process the .wav file (phoneme extraction, scoring, feedback)
         try:
-            # Ensure the audio instance is created correctly before proceeding
-            logger.debug("Creating AudioFile instance")
-            audio_instance = AudioFile.objects.create(file=File(open(wav_file, 'rb')))
-            phoneme_results = extract_phonemes(audio_instance.file)
-            logger.debug("Phoneme extraction successful")
-            score, extra_phonemes, missing_phonemes = get_score(phoneme_results)
-            feedback = []
-            for extra, target in zip(extra_phonemes, missing_phonemes):
-                feedback.extend(generate_feedback_for_target(extra, target))
-            logger.debug(f"Feedback generated: {feedback}")
+            logger.debug("Processing the .wav file")
+            with open(tmp_wav_path, 'rb') as wav_file:
+                phoneme_results = extract_phonemes(wav_file)
+                logger.debug("Phoneme extraction successful")
+                score, extra_phonemes, missing_phonemes = get_score(phoneme_results)
+                feedback = []
+                for extra, target in zip(extra_phonemes, missing_phonemes):
+                    feedback.extend(generate_feedback_for_target(extra, target))
+                logger.debug(f"Feedback generated: {feedback}")
         except Exception as e:
             logger.error(f"Error during audio processing: {e}")
             return Response({'error': f'Error during audio processing: {str(e)}'}, status=500)
         finally:
-            if audio_instance:
-                audio_instance.file.delete(save=False)  # Remove the file after processing
-                audio_instance.delete()  # Optionally delete the AudioFile instance
+            # Cleanup temp files safely
+            if os.path.exists(tmp_mov_path):
+                os.remove(tmp_mov_path)
+            if os.path.exists(tmp_wav_path):
+                os.remove(tmp_wav_path)
 
-        # Step 5: Return feedback and score
+        # Step 4: Return feedback and score
         return Response({'score': score, 'feedback': feedback})
 
     except Exception as e:

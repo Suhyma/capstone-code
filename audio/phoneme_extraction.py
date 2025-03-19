@@ -5,6 +5,7 @@ import torch
 from itertools import groupby
 import subprocess
 import os
+import tempfile
 
 def decode_phonemes(ids: torch.Tensor, processor: Wav2Vec2Processor, ignore_stress: bool = True) -> str:
     """CTC-like decoding. First removes consecutive duplicates, then removes special tokens."""
@@ -26,12 +27,24 @@ def decode_phonemes(ids: torch.Tensor, processor: Wav2Vec2Processor, ignore_stre
 
     return prediction
 
-def convert_mov_to_wav(input_path, output_path):
+def convert_mov_to_wav(input_path):
+    # Create a unique temp filename using NamedTemporaryFile
+    with tempfile.NamedTemporaryFile(suffix=".wav", delete=False) as temp_wav:
+        output_path = temp_wav.name
+
+    # FFmpeg command to convert MOV to WAV
+    command = [
+        "ffmpeg", "-i", input_path, "-vn",
+        "-acodec", "pcm_s16le", "-ar", "44100", "-ac", "1", output_path
+    ]
+
     try:
-        subprocess.run(["ffmpeg", "-i", input_path, output_path], check=True)
+        subprocess.run(command, check=True)
+        print(f"Conversion successful. Saved to: {output_path}")
         return output_path
-    except subprocess.CalledProcessError:
-        raise Exception("FFmpeg failed to convert audio.")
+    except subprocess.CalledProcessError as e:
+        print(f"Error during conversion: {e}")
+        return None
 
 def extract_phonemes(audiofile):
     checkpoint = "bookbot/wav2vec2-ljspeech-gruut"
@@ -39,8 +52,8 @@ def extract_phonemes(audiofile):
     processor = AutoProcessor.from_pretrained(checkpoint)
     sr = processor.feature_extractor.sampling_rate
 
-    wav_path = audiofile.path.replace(".mov", ".wav")
-    wav_path = convert_mov_to_wav(audiofile.path, wav_path)
+    wav_path = audiofile.name.replace(".mov", ".wav")
+    wav_path = convert_mov_to_wav(audiofile.name)
 
     # reading a single audio file
     # audio_array, _ = librosa.load(audiofile, sr=sr)
