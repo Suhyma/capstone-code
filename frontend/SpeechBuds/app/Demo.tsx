@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, Dimensions, TouchableOpacity } from "react-nati
 import { Video, ResizeMode, AVPlaybackStatus } from "expo-av";
 import { useNavigate } from "./hooks/useNavigate";
 import { useRoute } from "@react-navigation/native";
+import { ActivityIndicator } from "react-native-paper";
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
 
@@ -13,6 +14,7 @@ const DemoScreen = () => {
   const [screenWidth, setScreenWidth] = useState(Dimensions.get("window").width);
   const [screenHeight, setScreenHeight] = useState(Dimensions.get("window").height);
   const [isPortrait, setIsPortrait] = useState(screenHeight > screenWidth);
+  const [loading, setLoading] = useState(true);
 
   const { wordSet, currentIndex } = route.params as { wordSet: string[], currentIndex: number };
   const currentWord = wordSet[currentIndex]
@@ -95,6 +97,13 @@ const DemoScreen = () => {
 
         {/* Video Container */}
         <View style={styles.videoContainer}>
+          {/* add a loading animation as demo video loads */}
+          {loading && (
+            <View style={styles.loadingContainer}>
+              <ActivityIndicator size="large" color= "#A4D65E" />
+              <Text style={styles.loadingText}>Loading Video...</Text>
+            </View>
+          )}
           <Video
             ref={videoRef}
             source={{ uri: videoMapping[currentWord] }}
@@ -102,8 +111,9 @@ const DemoScreen = () => {
             resizeMode={ResizeMode.COVER}
             shouldPlay
             style={styles.video}
-            usePoster={true}
-            onLoad={() => console.log("Video loaded")} // Optional debug log
+            // usePoster={true}
+            onLoadStart={() => setLoading(true)} 
+            onReadyForDisplay={() => setLoading(false)}
             onError={(error) => console.log("Error loading video:", error)}
           />
         </View>
@@ -229,6 +239,16 @@ const styles = StyleSheet.create({
     color: "white",
     fontWeight: "bold",
     fontSize: 16,
+  },
+  loadingContainer: {
+    position: "absolute",
+    alignItems: "center",
+  },
+  loadingText: {
+    marginTop: 10,
+    fontSize: 16,
+    fontWeight: "bold",
+    color: "#432818"
   },
 });
 export default DemoScreen;
