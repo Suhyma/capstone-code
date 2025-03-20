@@ -156,6 +156,9 @@ const FeedbackScreen = () => {
         <Text style={styles.text}>
             {`Your score for the word ${wordSet[currentIndex]} is: ${score}`}
         </Text>
+        <Text style={styles.feedbackText}>
+          {feedback}
+        </Text>
 
 
         {/* Buttons */}
@@ -293,7 +296,7 @@ const styles = StyleSheet.create({
   },
   buttonContainer: {
     flexDirection: "row",
-    marginTop: 90,
+    marginTop: 70,
     // top: -400, // just to test on suhymas phone
     gap: 15,
   },
