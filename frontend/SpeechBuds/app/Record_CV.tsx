@@ -22,7 +22,7 @@ const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
 export default function Record() {
   const { navigateTo } = useNavigate();
   const route = useRoute();
-  const { wordSet, currentIndex, attemptNumber } = route.params as { wordSet: string[], currentIndex: number, attemptNumber: number}; 
+  const { wordSet, currentIndex, attemptNumber, scoreTracking } = route.params as { wordSet: string[], currentIndex: number, attemptNumber: number, scoreTracking: number[]}; 
   const currentWord = wordSet[currentIndex];
   const attempt = 0;
   const score = 0; // placeholder before backend scoring is connected
@@ -142,12 +142,18 @@ export default function Record() {
       );
   
       console.log("Response from backend:", response?.data);
+  
+      // track the score
+      const updatedScoreTracking = [...scoreTracking];
+      updatedScoreTracking[currentIndex] = response?.data?.score || 0; // add current score to the total scores in exercise
+
       navigateTo("Feedback", {
         wordSet,
         currentIndex,
         attemptNumber,
         score: response?.data?.score || 0,
         feedback: response?.data?.feedback || "",
+        scoreTracking: scoreTracking
       });
     } catch (error) {
       console.error("Error submitting video:", error);
@@ -198,7 +204,7 @@ export default function Record() {
           {/* Back Button */}
           <TouchableOpacity
             style={styles.backButton}
-            onPress={() => navigateTo("Demo", { wordSet: wordSet, currentIndex: currentIndex })}
+            onPress={() => navigateTo("Demo", { wordSet: wordSet, currentIndex: currentIndex, scoreTracking: scoreTracking })}
           >
             <Text style={styles.exitButtonText}>Back</Text>
           </TouchableOpacity>

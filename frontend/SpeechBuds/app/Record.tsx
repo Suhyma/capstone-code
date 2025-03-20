@@ -19,7 +19,7 @@ const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
 export default function Record() {
   const { navigateTo } = useNavigate();
   const route = useRoute();
-  const { wordSet, currentIndex, attemptNumber } = route.params as { wordSet: string[], currentIndex: number, attemptNumber: number}; 
+  const { wordSet, currentIndex, attemptNumber, scoreTracking } = route.params as { wordSet: string[], currentIndex: number, attemptNumber: number, scoreTracking: number[]}; 
   const currentWord = wordSet[currentIndex];
   const attempt = 0;
   const score = 0; // placeholder before backend scoring is connected
@@ -103,6 +103,21 @@ export default function Record() {
       console.log("Video URI:", response!.uri);
     }
   }
+
+  const testScoring = () => {
+    const updatedScoreTracking = [...scoreTracking];
+    updatedScoreTracking[currentIndex] = 80;
+    navigateTo("Feedback", {
+      wordSet,
+      currentIndex,
+      attemptNumber,
+      score: 100,
+      feedback: "To improve the sound: Try starting with closed lips. Then ",
+      // feedback: "No specific feedback for correcting ʃ to s.",
+      // feedback: "To improve the sound: Bring your tongue far enough behind your teeth so your tongue doesn't touch your teeth. ",
+      scoreTracking: updatedScoreTracking
+    });
+  }
   
   // Function to submit audio to the backend and navigate to feedback page
   const sendAudioToBackend = async () => {
@@ -134,12 +149,18 @@ export default function Record() {
       );
   
       console.log("Response from backend:", response?.data);
+
+      // track the score
+      const updatedScoreTracking = [...scoreTracking];
+      updatedScoreTracking[currentIndex] = response?.data?.score || 0; // add current score to the total scores in exercise
+
       navigateTo("Feedback", {
         wordSet,
         currentIndex,
         attemptNumber,
         score: response?.data?.score || 0,
         feedback: response?.data?.feedback || "",
+        scoreTracking: scoreTracking
       });
     } catch (error) {
       console.error("Error submitting video:", error);
@@ -190,7 +211,7 @@ export default function Record() {
           {/* Back Button */}
           <TouchableOpacity
             style={styles.backButton}
-            onPress={() => navigateTo("Demo", { wordSet: wordSet, currentIndex: currentIndex })}
+            onPress={() => navigateTo("Demo", { wordSet: wordSet, currentIndex: currentIndex, scoreTracking: scoreTracking })}
           >
             <Text style={styles.exitButtonText}>Back</Text>
           </TouchableOpacity>
@@ -232,6 +253,7 @@ export default function Record() {
           <TouchableOpacity 
             style={[styles.button, !videoUri && styles.disabledButton]}
             onPress={sendAudioToBackend}  // Call sendAudioToBackend here to submit the audio
+            // onPress={testScoring}
             disabled={!videoUri}
           >
             <Text style={styles.text}>Get Feedback</Text>
@@ -349,6 +371,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     minWidth: screenWidth * 0.3,
+    // top: -400 // just to test on suhymas phone
   },
   disabledButton: {
     backgroundColor: "#ccc", // Greyed out when disabled

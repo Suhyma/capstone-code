@@ -7,6 +7,7 @@ import { useNavigate } from "./hooks/useNavigate";
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get("window");
+const scoreTracking = [0, 0, 0, 0, 0];
 
 const gardenItems = [
   { id: 1, image: require("@/assets/images/Corn.png") },
@@ -134,7 +135,7 @@ const ChildHomeScreen = () => {
             <TouchableOpacity
               key={index}
               style={styles.taskCard}
-              onPress={() => navigateTo("Demo", { wordSet: task.words, currentIndex: 0 })}
+              onPress={() => navigateTo("Demo", { wordSet: task.words, currentIndex: 0, scoreTracking: scoreTracking })}
             >
               <Text style={styles.taskTitle}>{task.title}</Text>
               <Text style={styles.taskDetails}>Due Date: {task.dueDate}</Text>
@@ -191,7 +192,7 @@ const ChildHomeScreen = () => {
 
 const tasks = [
   { title: "S Sound Initial Exercises", dueDate: "March 21, 2025", seeds: 55, words: ["Summer", "Stain", "Silly", "Sock", "Say"] },
-  { title: "R Sound Medial Exercises", dueDate: "March 21, 2025", seeds: 55, words: ["Carrot", "Berry", "Corn", "Arrow", "Parent"] },
+  { title: "R Sound Medial Exercises", dueDate: "March 21, 2025", seeds: 55, words: ["Carrot", "Berry", "Arrow", "Cherry", "Parent"] },
 ];
 
 const styles = StyleSheet.create({
@@ -208,10 +209,11 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     textAlign: "center",  // Centering the title
     marginBottom: 10,
+    color: "#432818",
   },
 
   taskCard: { backgroundColor: "#B48A5A", padding: 10, borderRadius: 8, marginBottom: 20},
-  taskTitle: { fontSize: 25, fontWeight: "bold", padding: 10 },
+  taskTitle: { fontSize: 25, fontWeight: "bold", padding: 10,  color: "#432818", },
   taskDetails: { fontSize: 18, color: "#444", paddingStart: 10 },
 
   gardenWrapper: { 
@@ -224,7 +226,8 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: "bold",
     marginBottom: 10,
-    textAlign: "center"
+    textAlign: "center",
+    color: "#432818",
   },
 
   gardenBox: { 

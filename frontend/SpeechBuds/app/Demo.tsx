@@ -16,28 +16,42 @@ const DemoScreen = () => {
   const [isPortrait, setIsPortrait] = useState(screenHeight > screenWidth);
   const [loading, setLoading] = useState(true);
 
-  const { wordSet, currentIndex } = route.params as { wordSet: string[], currentIndex: number };
+  const { wordSet, currentIndex, scoreTracking } = route.params as { wordSet: string[], currentIndex: number, scoreTracking: number[] };
   const currentWord = wordSet[currentIndex]
   const attempt = 0;
 
   const videoRef = useRef<Video>(null);
 
-    // 🎥 Video Mapping
   const videoMapping: { [key: string]: any } = {
-    Summer: "https://firebasestorage.googleapis.com/v0/b/speech-buds.firebasestorage.app/o/Summer.mp4?alt=media&token=b537e7ed-ced2-4819-b8b5-96efce589748",
-    // Summer: require("assets/images/Summer.mp4"),
-    Carrot: "https://firebasestorage.googleapis.com/v0/b/speech-buds.firebasestorage.app/o/484258902_9332589840167314_759553405236316434_n.mp4?alt=media&token=6f18fe5c-810b-4aa5-a01d-1ee29e832937",
+    Summer: "https://firebasestorage.googleapis.com/v0/b/speech-buds.firebasestorage.app/o/Cropped_Summer.MOV?alt=media&token=20ba1c01-3397-4bfd-b64b-3d007087eecd",
+    Stain: "https://firebasestorage.googleapis.com/v0/b/speech-buds.firebasestorage.app/o/Stain.MOV?alt=media&token=e325012d-aa21-42fe-8b76-0469ee1f65dd",
+    Silly: "https://firebasestorage.googleapis.com/v0/b/speech-buds.firebasestorage.app/o/Silly.MOV?alt=media&token=163b56cc-f788-433d-9bc2-4dd3ddcf5bf8",
+    Sock: "https://firebasestorage.googleapis.com/v0/b/speech-buds.firebasestorage.app/o/Sock.MOV?alt=media&token=48303891-f5a9-46f8-ba10-2e1dd171eae9",
+    Say: "https://firebasestorage.googleapis.com/v0/b/speech-buds.firebasestorage.app/o/Say.MOV?alt=media&token=a96ae207-5a7f-4f4a-9c71-5d05ec9d6eee",
+    Carrot: "https://firebasestorage.googleapis.com/v0/b/speech-buds.firebasestorage.app/o/Cropped_Carrot.mov?alt=media&token=27bb2bc7-a5b1-4492-a106-1b4df94d2813",
+    Berry: "https://firebasestorage.googleapis.com/v0/b/speech-buds.firebasestorage.app/o/Berry.MOV?alt=media&token=3abaccc9-05aa-4ae4-8080-370cd26fe444",
+    Arrow: "https://firebasestorage.googleapis.com/v0/b/speech-buds.firebasestorage.app/o/Arrow.MOV?alt=media&token=403842dd-34f9-4f93-b1c4-4b6190a8d185",
+    Cherry: "https://firebasestorage.googleapis.com/v0/b/speech-buds.firebasestorage.app/o/Cherry.MOV?alt=media&token=6faf5a8a-02a5-4a71-a74b-becc4495ed19",
+    Parent: "https://firebasestorage.googleapis.com/v0/b/speech-buds.firebasestorage.app/o/Parent.MOV?alt=media&token=127a99a9-f690-4236-b7a9-a2238abda7c5"
   }
 
   useEffect(() => {
     // preloading the video beforehand to try and reduce load time
-    // const preloadVideo = async (uri: string) => {
-    //   const video = new Video();
-    //   await video.loadAsync({ uri }, {}, false); 
-    //   console.log("Video preloaded");
-    // };
-
-    // preloadVideo(videoMapping[currentWord])
+    const preloadVideo = async (uri: string) => {
+      if (videoRef.current) {
+        try {
+          await videoRef.current.loadAsync(
+            { uri },
+            { shouldPlay: true },
+          );
+          console.log("Video preloaded");
+        } catch (error) {
+          console.error("Error preloading video:", error);
+        }
+      }
+    };
+  
+    preloadVideo(videoMapping[currentWord]);
     
     // checking screen dimensions
     const updateDimensions = () => {
@@ -55,15 +69,16 @@ const DemoScreen = () => {
       
   }, []);
 
-  // Select video based on `word`, default to a placeholder
-  const selectedVideo = videoMapping[currentWord] || "https://drive.google.com/uc?export=download&id=1_IZfzWCWZ8iz5X-bYHFdTWWYHR1r8rdu";
   const progressWidth = ((currentIndex + 1) * (screenWidth/5));
 
-  const handleReplay = async () => {
-    if (videoRef.current) {
-      await videoRef.current.stopAsync();
-      await videoRef.current.playAsync();
+  const handlePlaybackStatusUpdate = (status: AVPlaybackStatus) => {
+    if (!status.isLoaded) {
+      return;
     }
+    if (status.didJustFinish) {
+      videoRef.current?.setPositionAsync(0); // reset position to start of vid
+    }
+  
   };
   
   return (
@@ -86,11 +101,24 @@ const DemoScreen = () => {
             <Text style={styles.exitButtonText}>Exit</Text>
           </TouchableOpacity>
 
-           {/* Back Button */}
+          {/* Back Button */}
+          {/* <TouchableOpacity
+            style={styles.backButton}
+            onPress={() => navigateTo("Demo", { wordSet: wordSet, currentIndex: currentIndex - 1, scoreTracking: scoreTracking })}
+          > */}
           <TouchableOpacity
             style={styles.backButton}
-            onPress={() => navigateTo("ChildHomeScreen")}
-          >
+            onPress={() => {
+              if (currentIndex === 0) {
+                navigateTo("ChildHomeScreen"); // navigate to the child home screen if currentIndex is 0
+              } else {
+                navigateTo("Demo", {
+                  wordSet: wordSet,
+                  currentIndex: currentIndex - 1, // else navigate to the previous word
+                  scoreTracking: scoreTracking,
+                });
+              }
+            }}>
             <Text style={styles.exitButtonText}>Back</Text>
           </TouchableOpacity>
         </View>
@@ -114,6 +142,7 @@ const DemoScreen = () => {
             // usePoster={true}
             onLoadStart={() => setLoading(true)} 
             onReadyForDisplay={() => setLoading(false)}
+            onPlaybackStatusUpdate={handlePlaybackStatusUpdate}
             onError={(error) => console.log("Error loading video:", error)}
           />
         </View>
@@ -122,7 +151,7 @@ const DemoScreen = () => {
         <TouchableOpacity
           style={styles.startButton}
           // onPress={() => navigateTo("Record_CV", { wordSet: wordSet, currentIndex: currentIndex, attemptNumber: attempt })}
-          onPress={() => navigateTo("Record", { wordSet: wordSet, currentIndex: currentIndex, attemptNumber: attempt })}
+          onPress={() => navigateTo("Record", { wordSet: wordSet, currentIndex: currentIndex, attemptNumber: attempt, scoreTracking: scoreTracking })}
         >
           <Text style={styles.startButtonText}>Start</Text>
         </TouchableOpacity>
@@ -131,7 +160,6 @@ const DemoScreen = () => {
   );
 };
 
-// 🎨 Styles
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -152,7 +180,7 @@ const styles = StyleSheet.create({
   brownContainer: {
     flex: 1,
     width: screenWidth * 0.9,
-    height: screenHeight * 0.9,
+    height: screenHeight * 0.6,
     // flexDirection: "column",
     // justifyContent: "center",
     alignItems: "center",
@@ -202,18 +230,9 @@ const styles = StyleSheet.create({
     borderRadius: 5,
     padding: 5,
   },
-  // videoContainer: {
-  //   flex: 2,
-  //   // flexDirection: "row",
-  //   justifyContent: "center",
-  //   alignItems: "center",
-  //   // position: "absolute",
-  //   // top: 50,
-  //   left: 90,
-  // },
   videoContainer: {
     width: screenWidth * 0.8,
-    height: screenHeight * 0.5,
+    height: screenHeight * 0.7,
     borderRadius: 10,
     borderWidth: 2,
     borderColor: '#684503',
@@ -223,7 +242,7 @@ const styles = StyleSheet.create({
   },
   video: {
     width: screenWidth * 0.8,
-    height: screenHeight * 0.5,
+    height: screenHeight * 0.7,
   },
   startButton: {
     backgroundColor: "#5A3E1B",
@@ -231,7 +250,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     borderRadius: 5,
     position: "absolute",
-    top: 580,
+    top: 950, // for ipad
+    // top: 60 // for suhyma phone
   },
   startButtonText: {
     color: "white",

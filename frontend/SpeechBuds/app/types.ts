@@ -5,10 +5,10 @@ export type StackParamList = {
   
   // Client-facing screens
   ChildHomeScreen: undefined;
-  Demo: { wordSet: string[], currentIndex: number};
-  Record: { wordSet: string[], currentIndex: number, attemptNumber: number};
-  Record_CV: { wordSet: string[], currentIndex: number, attemptNumber: number};
-  Feedback: { wordSet: string[], currentIndex: number, attemptNumber: number, score: number, feedback: string};
+  Demo: { wordSet: string[], currentIndex: number, scoreTracking: number[]};
+  Record: { wordSet: string[], currentIndex: number, attemptNumber: number, scoreTracking: number[]};
+  Record_CV: { wordSet: string[], currentIndex: number, attemptNumber: number, scoreTracking: number[]};
+  Feedback: { wordSet: string[], currentIndex: number, attemptNumber: number, score: number, feedback: string, scoreTracking: number[]};
   CompletionScreen: { overallScore: number, seedsCollected: number };
 
   GardenGame: undefined;
