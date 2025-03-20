@@ -296,7 +296,7 @@ const styles = StyleSheet.create({
   },
   buttonContainer: {
     flexDirection: "row",
-    marginTop: 70,
+    marginTop: 40,
     // top: -400, // just to test on suhymas phone
     gap: 15,
   },
