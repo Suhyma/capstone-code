@@ -16,6 +16,8 @@ import { getDownloadURL } from 'firebase/storage';
 {/*Stuff that is necessary for CV features*/}
 import VideoViewComponent from './VideoViewComponent';
 import { Switch } from 'react-native';
+import { LandmarksData } from './LandmarksData';
+import { Camera, useCameraDevice, useCameraPermission } from 'react-native-vision-camera';
 import { useCVIntegration } from './new_CV';
 
 
@@ -39,29 +41,26 @@ export default function Record() {
   const [screenHeight, setScreenHeight] = useState(Dimensions.get("window").height);
   const [isPortrait, setIsPortrait] = useState(screenHeight > screenWidth);
   
-   {/*Stuff that is necessary for CV features*/}
+   //Stuff that is necessary for CV features*
   const [audioUri, setAudioUri] = useState<string | null>(null);
   const [audioRecording, setAudioRecording] = useState<Audio.Recording | null>(null);
-  const [showComputerVision, setShowComputerVision] = useState(false); // Toggle state
-  const ws = useRef<WebSocket | null>(null);
 
-  const cameraRef = useRef<CameraView>(null);
+  const [showComputerVision, setShowComputerVision] = useState(false); // Toggle state
+  const device = useCameraDevice(facing);
+  const [isActive, setIsActive] = useState(true);
+  const [cvRunning, setCvRunning] = useState(false);
+  const [landmarks, setLandmarks] = useState<LandmarksData | null>(null);
+  
+
+
+  // refs
+  const ws = useRef<WebSocket | null>(null);
+  const cameraRef = useRef<CameraView>(null); // expo camera ref
+  const visionCameraRef = useRef<Camera | null>(null); // react camera ref
   const videoRef = useRef<Video | null>(null); 
 
-  const {
-    // States and Refs
-    camera,
-    device,
-    isConnected,
-    cvRunning,
-    playingReference,
-    landmarks,
-    hasPermission,
-    debugInfo,
-    cameraViewDimensions,
-    referenceCompleted,
-    frameCaptured,
 
+  const {
     // Methods
     handleToggle,
     handlePlayReference,
@@ -267,6 +266,7 @@ export default function Record() {
               style={styles.camera} 
               mode="video" 
               facing={facing}
+              active={!cvRunning}
             />
           )}
           
@@ -293,6 +293,9 @@ export default function Record() {
                     );
                     setCvRunning(false);
                     setLandmarks(null);
+
+                      // Ensure the camera is active when CV is turned off
+                    // setIsActive(true);
                   }
                 }
               }}
