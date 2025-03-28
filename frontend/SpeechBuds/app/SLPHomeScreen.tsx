@@ -17,7 +17,7 @@ const HomeScreen = () => {
 
       {/* Notifications Section */}
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>NOTIFICATIONS</Text>
+        <Text style={styles.sectionTitle}>UPDATES</Text>
         <View style={styles.notificationCard}>
           <Text style={styles.notificationTitle}>Adam's weekly exercises report is now available</Text>
           <Text style={styles.notificationSubtitle}>5/5 assigned exercises completed</Text>
@@ -28,7 +28,7 @@ const HomeScreen = () => {
         <View style={styles.notificationCard}>
           <Text style={styles.notificationTitle}>Sam's assigned exercise update</Text>
           <Text style={styles.notificationSubtitle}>
-            "R" sound exercises not completed by due date Mar 19, 2025
+            "R" sound exercises not completed by due date April 19, 2025
           </Text>
           <TouchableOpacity onPress={() => navigateTo("Clients")}>
             <Text style={styles.linkText}>see more</Text>
@@ -43,7 +43,7 @@ const HomeScreen = () => {
 
         <View style={styles.clientCard}>
           <TouchableOpacity onPress={() => navigateTo("Clients")}>
-            <Text style={styles.clientName}>Sarah Grey</Text>
+            <Text style={styles.clientName}>Gracie Grey</Text>
             <Text style={styles.clientDetails}>8 years old</Text>
             <Text style={styles.clientDetails}>5 weeks into treatment</Text>
           </TouchableOpacity>
@@ -91,7 +91,9 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#FAF3DD",
-    padding: 20,
+    paddingTop: 50,
+    paddingLeft: 75,
+    paddingRight: 75,
   },
   header: {
     marginBottom: 25,
@@ -115,21 +117,23 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
   },
   section: {
-    marginTop: 40,
-    marginBottom: 24,
+    marginTop: 20,
+    marginBottom: 20,
   },
   sectionTitle: {
     fontSize: 18,
     fontWeight: "bold",
     color: "#684503",
-    marginBottom: 8,
+    marginBottom: 20,
   },
   notificationCard: {
-    backgroundColor: "#96C449",
-    padding: 16,
-    borderRadius: 8,
-    marginBottom: 12,
-    width: "50%",
+    backgroundColor: '#D0DF9A',
+    borderColor: "#96C449",
+    borderWidth: 2,
+    padding: 15,
+    borderRadius: 10,
+    marginBottom: 25,
+    width: "100%",
   },
   notificationTitle: {
     fontSize: 16,
@@ -139,23 +143,29 @@ const styles = StyleSheet.create({
   notificationSubtitle: {
     fontSize: 14,
     color: "#000",
-    marginBottom: 8,
+    marginBottom: 4,
   },
   linkText: {
     fontSize: 14,
-    color: "#007BFF",
-    textDecorationLine: "underline",
+    color: "#000",
+    fontWeight: "bold",
+    textAlign: 'right',
   },
   clientsRow: {
     flexDirection: "row",
     justifyContent: "space-between",
+    flexWrap: "wrap",  // Ensures responsiveness
+    gap: 20, // Adds space between client cards
   },
   clientCard: {
     backgroundColor: "#D2B48C",
-    padding: 16,
-    borderRadius: 8,
+    borderColor: '#684503',
+    borderWidth: 2,
+    padding: 15,
+    borderRadius: 10,
     width: "30%",
     alignItems: "center",
+    marginBottom: 15,
   },
   clientName: {
     fontSize: 16,
@@ -169,19 +179,24 @@ const styles = StyleSheet.create({
   },
   exercisesRow: {
     flexDirection: "row",
-    justifyContent: "space-between",
+    justifyContent: "left",
+    flexWrap: "wrap",  // Ensures responsiveness
+    gap: 20, // Adds space between client cards
   },
   exerciseCard: {
     backgroundColor: "#D2B48C",
-    padding: 32,
-    borderRadius: 8,
-    width: "45%",
+    borderColor: '#684503',
+    borderWidth: 2,
+    padding: 20,
+    borderRadius: 10,
+    width: "15%",
     alignItems: "center",
+    marginRight: 20,
   },
   exerciseText: {
     fontSize: 32,
     fontWeight: "bold",
-    color: "#000",
+    color: "#684503",
   },
 });
 
