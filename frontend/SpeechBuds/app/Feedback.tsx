@@ -34,33 +34,33 @@ const FeedbackScreen = () => {
     Way_To_Go: "https://firebasestorage.googleapis.com/v0/b/speech-buds.firebasestorage.app/o/way2go.MOV?alt=media&token=d3a38151-500e-486b-aee6-35f342be37eb" // Way to go!
   }
 
-  const getFeedbackType = (feedback: string) => {
+  const getFeedbackType = (feedback: string, score: number) => {
     // no feedback needed
-    if (feedback == "") {
+    if (score === 100) {
       return videoMapping["Way_To_Go"];
     }
-
-    // // generic feedbacks
-    // if (feedback.startsWith("No specific feedback for correcting")) {
-    //   if (wordSet[0] == "Summer"){
-    //     return videoMapping["Generic_S"];
-    //   } 
-    //   else {
-    //     return videoMapping["Generic_R"];
-    //   }
-    // }
-
-    // specific feedbacks
-    
-    // const feedbackWithoutPrefix = feedback.replace(/^To improve the sound: /, "").trim(); 
-    // const firstFewWords = feedbackWithoutPrefix.split(" ").slice(0, 5).join(" "); 
-    // return videoMapping[firstFewWords]
-
+  
+    // Check if feedback is properly passed as an array
+    const feedbackText = Array.isArray(feedback) && feedback.length > 0 ? feedback[0] : "";
+    if (!feedbackText) {
+      console.log("Feedback is empty or undefined", feedback); // Add a log for debugging
+      return videoMapping["Generic_R"]; // Default fallback if no feedback
+    }
+  
+    // Remove any unwanted prefix if necessary (e.g., 'To improve the sound:')
+    const feedbackWithoutPrefix = feedbackText.replace(/^To improve the sound: /, "").trim();
+  
+    // Get the first few words for mapping
+    const firstFewWords = feedbackWithoutPrefix.split(" ").slice(0, 5).join(" "); 
+  
+    if (videoMapping[firstFewWords]) {
+      return videoMapping[firstFewWords];
+    }
+  
     // Default fallback
-    if (wordSet[0] == "Summer"){
+    if (wordSet[0] === "Summer") {
       return videoMapping["Generic_S"];
-    } 
-    else {
+    } else {
       return videoMapping["Generic_R"];
     }
   };
@@ -139,7 +139,7 @@ const FeedbackScreen = () => {
           )}
           <Video
             ref={videoRef}
-            source={{ uri: getFeedbackType(feedback) }} // specify the video based on the feedback returned
+            source={{ uri: getFeedbackType(feedback, score) }} // specify the video based on the feedback returned
             useNativeControls
             resizeMode={ResizeMode.COVER}
             shouldPlay
@@ -154,7 +154,7 @@ const FeedbackScreen = () => {
           
         {/* Feedback Text */}
         <Text style={styles.text}>
-            {`Your score for the word ${wordSet[currentIndex]} is: ${score}`}
+            {`Your score for the word ${wordSet[currentIndex]} is: ${score}%`}
         </Text>
         <Text style={styles.feedbackText}>
           {feedback}
