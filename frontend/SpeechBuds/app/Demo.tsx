@@ -151,10 +151,22 @@ const DemoScreen = () => {
         <TouchableOpacity
           style={styles.startButton}
           // onPress={() => navigateTo("Record_CV", { wordSet: wordSet, currentIndex: currentIndex, attemptNumber: attempt })}
-          onPress={() => navigateTo("Record", { wordSet: wordSet, currentIndex: currentIndex, attemptNumber: attempt, scoreTracking: scoreTracking })}
+          onPress={() => navigateTo("Record_CV", { wordSet: wordSet, currentIndex: currentIndex, attemptNumber: attempt })}
         >
           <Text style={styles.startButtonText}>Start</Text>
         </TouchableOpacity>
+
+        {/* <View style={styles.startButton}>
+          <Link href="/ExerciseScreen-React-Cam" style={styles.button}>
+            React cam CV test
+          </Link>
+        </View>
+        
+        <View style={styles.startButton}>
+          <Link href="/Test_CV" style={styles.button}>
+            test cv
+          </Link>
+        </View> */}
       </View>
     </View>
   );

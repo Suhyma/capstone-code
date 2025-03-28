@@ -2,18 +2,23 @@
   "extends": "expo/tsconfig.base", // ./node_modules/expo/tsconfig.base.json
   "compilerOptions": {
     "strict": true,
-    "jsx": "react-native",
+    "moduleResolution": "node",
     "baseUrl": ".",
+    "jsx": "react-native",
     "paths": {
+      "@mediapipe/tasks-vision": ["node_modules/@mediapipe/tasks-vision"],
       "@/*": ["./*"], 
       "@services/*": ["./services/*"], 
       "@assets/*": ["./assets/*"]
     }
   },
+  
   "include": [
     "**/*.ts",
     "**/*.tsx",
     ".expo/types/**/*.ts",
-    "expo-env.d.ts"
+    "expo-env.d.ts", 
+    "app/Record_CV.js"
   ]
+
 }

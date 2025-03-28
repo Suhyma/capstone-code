@@ -1,29 +1,53 @@
 {
   "expo": {
-    "name": "SpeechBuds",
-    "slug": "SpeechBuds",
+    "name": "capstone-code",
+    "slug": "capstone-code",
     "version": "1.0.0",
-    "orientation": "portrait",
+    "orientation": "default",
     "icon": "./assets/images/icon.png",
     "scheme": "myapp",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
+    "jsEngine": "hermes",
+    "developmentClient": {},
+    "platforms": [
+      "ios",
+      "android",
+      "web"
+    ],
     "ios": {
       "supportsTablet": true,
-      "requireFullScreen": true
+      "requireFullScreen": true,
+      "bundleIdentifier": "com.e.wong.capstonecode",
+      "jsEngine": "hermes",
+      "infoPlist": {
+        "NSCameraUsageDescription": "This app requires camera access for facial tracking.",
+        "NSMicrophoneUsageDescription": "This app requires microphone access for audio playback.",
+        "ITSAppUsesNonExemptEncryption": false, 
+        "NSPhotoLibraryUsageDescription": "This app does not need access to your photo library.",
+        "UIBackgroundModes": ["fetch"],
+        "NSFaceIDUsageDescription": "This app uses facial recognition features for speech therapy",
+        "NSAppTransportSecurity": {
+          "NSAllowsArbitraryLoads": true
+        }
+      }
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"
-      }
+      },
+      "permissions": [
+        "android.permission.CAMERA",
+        "android.permission.RECORD_AUDIO"
+      ],
+      "package": "com.anonymous.SpeechBuds"
     },
     "web": {
       "bundler": "metro",
       "output": "static"
     },
     "plugins": [
-      "expo-router",
       [
         "expo-splash-screen",
         {
@@ -36,22 +60,49 @@
       "expo-video",
       "react-native-video",
       [
-      "expo-camera",
+        "expo-camera",
         {
-          "cameraPermission": "Allow $(PRODUCT_NAME) to access your camera",
-          "microphonePermission": "Allow $(PRODUCT_NAME) to access your microphone",
-          "recordAudioAndroid": true
+          "cameraPermission": "Allow SpeechBuds to access your camera",
+          "microphonePermission": "Allow SpeechBuds to access your microphone",
+          "android": {
+            "recordAudio": true
+          }
+        }
+      ],
+      [
+        "react-native-vision-camera",
+        {
+          "cameraPermissionText": "Allow SpeechBuds to access your camera",
+          "microphonePermissionText": "Allow SpeechBuds to access your microphone",
+          "enableFrameProcessor": true
+        }
+      ],
+      [
+        "expo-build-properties",
+        {
+          "ios": {
+            "deploymentTarget": "15.1",
+            "useFrameworks": "static"
+          }
         }
       ],
       [
         "expo-screen-orientation",
         {
-          "initialOrientation": "LANDSCAPE"
+          "initialOrientation": "PORTRAIT"
         }
       ]
     ],
     "experiments": {
       "typedRoutes": true
+    },
+    "extra": {
+      "router": {
+        "origin": false
+      },
+      "eas": {
+        "projectId": "c3109c6d-b939-45c7-b8f1-36f9457fac87"
+      }
     }
   }
 }
