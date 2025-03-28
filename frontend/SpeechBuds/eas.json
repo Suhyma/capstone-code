@@ -1,0 +1,65 @@
+{
+  "cli": {
+    "version": ">= 15.0.14",
+    "appVersionSource": "remote"
+  },
+  "build": {
+    "development": {
+      "developmentClient": true,
+      "distribution": "internal",
+      "ios": {
+        "simulator": false,
+        "resourceClass": "m-medium",
+        "buildConfiguration": "Debug"
+
+      },
+      "env": {
+        "NO_FLIPPER": "1",
+        "RCT_NO_FLIPPER": "1",
+        "USE_FLIPPER": "0"
+
+
+      }
+    },
+    "preview": {
+      "distribution": "internal",
+      "ios": {
+        "resourceClass": "m-medium"
+      },
+      "env": {
+        "NO_FLIPPER": "1",
+        "RCT_NO_FLIPPER": "1",
+        "USE_FLIPPER": "0"
+
+      }
+    },
+    "ios-camera-test": {
+      "distribution": "internal",
+      "ios": {
+        "resourceClass": "m-medium",
+        "buildConfiguration": "Release"
+      },
+      "channel": "camera-test"
+    },
+    "production": {
+      "autoIncrement": true,
+      "ios": {
+        "resourceClass": "m-medium"
+      },
+      "env": {
+        "NO_FLIPPER": "1",
+        "RCT_NO_FLIPPER": "1",
+        "USE_FLIPPER": "0"
+
+
+      }
+    }
+  },
+  "submit": {
+    "production": {
+      "ios": {
+        "appleId": "jainrakshita@gmail.com"
+      }
+    }
+  }
+}

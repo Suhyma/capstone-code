@@ -10,7 +10,7 @@ face_mesh = mp_face_mesh.FaceMesh(static_image_mode=False, max_num_faces=1, refi
 
 # Paths
 video_path = "computer_vision\carrot.mp4"  # Input video path
-csv_output_path = "computer_vision\\reference_landmarks.csv"  # CSV output path for landmarks
+csv_output_path = "computer_vision/reference_landmarks.csv"  # CSV output path for landmarks
 
 # Open video capture
 cap = cv2.VideoCapture(video_path)

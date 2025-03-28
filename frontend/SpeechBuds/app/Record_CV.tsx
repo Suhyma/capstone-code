@@ -16,6 +16,8 @@ import { getDownloadURL } from 'firebase/storage';
 {/*Stuff that is necessary for CV features*/}
 import VideoViewComponent from './VideoViewComponent';
 import { Switch } from 'react-native';
+import { useCVIntegration } from './new_CV';
+
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
 
@@ -38,12 +40,35 @@ export default function Record() {
   const [isPortrait, setIsPortrait] = useState(screenHeight > screenWidth);
   
    {/*Stuff that is necessary for CV features*/}
-   const [audioUri, setAudioUri] = useState<string | null>(null);
-   const [audioRecording, setAudioRecording] = useState<Audio.Recording | null>(null);
-   const [showComputerVision, setShowComputerVision] = useState(false); // Toggle state
+  const [audioUri, setAudioUri] = useState<string | null>(null);
+  const [audioRecording, setAudioRecording] = useState<Audio.Recording | null>(null);
+  const [showComputerVision, setShowComputerVision] = useState(false); // Toggle state
+  const ws = useRef<WebSocket | null>(null);
 
   const cameraRef = useRef<CameraView>(null);
   const videoRef = useRef<Video | null>(null); 
+
+  const {
+    // States and Refs
+    camera,
+    device,
+    isConnected,
+    cvRunning,
+    playingReference,
+    landmarks,
+    hasPermission,
+    debugInfo,
+    cameraViewDimensions,
+    referenceCompleted,
+    frameCaptured,
+
+    // Methods
+    handleToggle,
+    handlePlayReference,
+    handleCameraLayout,
+    renderLandmarks,
+    captureSingleFrame,
+  }= useCVIntegration();
 
   useEffect(() => {
     // checking screen dimensions
@@ -181,9 +206,9 @@ export default function Record() {
 
   const progressWidth = ((currentIndex + 1) * (screenWidth/5));
 
+
   return (
     <View style={styles.container}>
-
       <View style={styles.progressBarContainer}>
         <View style={[styles.progressBar, { width: progressWidth }]} />
       </View>
@@ -212,57 +237,112 @@ export default function Record() {
 
         {/* Camera View */}
         <View 
-            style={[
-              styles.cameraContainer,
-              isPortrait ? { width: "90%", height: screenHeight * 0.7 } 
-                         : { width: screenWidth * 0.8, height: "80%" }
-            ]}
-          >
-            <CameraView ref={cameraRef} style={styles.camera} mode="video" facing={facing} />
-        
-        {/* Toggle Switch */}
-        <View style={styles.toggleContainer}>
-          <Text style={styles.toggleLabel}>Toggle the switch on for a visual guide!</Text>
-          <Switch
-            value={showComputerVision}
-            onValueChange={setShowComputerVision}
-          />
-        </View>
-
-        {/* CV Play Button*/}
-        <TouchableOpacity
-          style={styles.CVPlayButton}
-          onPress={() => navigateTo("ChildHomeScreen")}
+          style={[
+            styles.cameraContainer,
+            isPortrait ? { width: "90%", height: screenHeight * 0.7 } 
+                     : { width: screenWidth * 0.8, height: "80%" }
+          ]}
+          onLayout={handleCameraLayout}
         >
-          <Text style={styles.CVPlayButtonText}>Play Word</Text>
-        </TouchableOpacity>
-
-        {/* Video Thumbnail */}
-          {videoUri && (
-          <TouchableOpacity 
-            style={styles.thumbnailContainer} 
-            onPress={() => videoRef.current?.presentFullscreenPlayer()}
-          >
-            <Video
-              ref={(ref) => (videoRef.current = ref)} 
-              source={{ uri: videoUri }}
-              style={styles.thumbnail}
-              resizeMode={ResizeMode.COVER}
-              useNativeControls
+          {/* Conditional rendering based on whether CV is enabled */}
+          {showComputerVision ? (
+            // Vision Camera for computer vision features
+            device ? (
+              <Camera
+                ref={visionCameraRef}
+                style={styles.camera}
+                device={device}
+                isActive={isActive}
+                photo={true}
+              />
+            ) : (
+              <View style={styles.camera}>
+                <Text style={styles.message}>Camera device not available</Text>
+              </View>
+            )
+          ) : (
+            // Expo Camera for video recording
+            <CameraView 
+              ref={cameraRef} 
+              style={styles.camera} 
+              mode="video" 
+              facing={facing}
             />
-          </TouchableOpacity>
+          )}
+          
+          {/* Landmarks overlay */}
+          {showComputerVision && renderLandmarks()}
+          
+          {/* Toggle Switch */}
+          <View style={styles.toggleContainer}>
+            <Text style={styles.toggleLabel}>Toggle the switch on for a visual guide!</Text>
+            <Switch
+              value={showComputerVision}
+              onValueChange={(value) => {
+                setShowComputerVision(value);
+                if (value) {
+                  handleToggle();
+                } else {
+                  // Turn off CV if toggled off
+                  if (ws.current?.readyState === WebSocket.OPEN) {
+                    ws.current.send(
+                      JSON.stringify({
+                        type: 'toggle',
+                        value: false,
+                      })
+                    );
+                    setCvRunning(false);
+                    setLandmarks(null);
+                  }
+                }
+              }}
+            />
+          </View>
+
+          {/* CV Play Button*/}
+          {showComputerVision && (
+            <TouchableOpacity
+              style={styles.CVPlayButton}
+              onPress={handlePlayReference}
+            >
+              <Text style={styles.CVPlayButtonText}>Play Word</Text>
+            </TouchableOpacity>
+          )}
+
+          {/* Video Thumbnail */}
+          {videoUri && (
+            <TouchableOpacity 
+              style={styles.thumbnailContainer} 
+              onPress={() => videoRef.current?.presentFullscreenPlayer()}
+            >
+              <Video
+                ref={(ref) => (videoRef.current = ref)} 
+                source={{ uri: videoUri }}
+                style={styles.thumbnail}
+                resizeMode={ResizeMode.COVER}
+                useNativeControls
+              />
+            </TouchableOpacity>
           )}
         </View>
 
         {/* Buttons */}
         <View style={styles.buttonContainer}>
-          <TouchableOpacity style={[styles.button, isRecording && styles.recordingButton]} onPress={toggleRecording}>
+          <TouchableOpacity 
+            style={[
+              styles.button, 
+              isRecording && styles.recordingButton,
+              showComputerVision && styles.disabledButton // Disable record button when CV is on
+            ]} 
+            onPress={toggleRecording}
+            disabled={showComputerVision} // Disable when CV is enabled
+          >
             <Text style={styles.text}>{isRecording ? "Stop" : "Record"}</Text>
           </TouchableOpacity>
 
           <TouchableOpacity 
             style={[styles.button, !videoUri && styles.disabledButton]}
-            onPress={sendAudioToBackend}  // Call sendAudioToBackend here to submit the audio
+            onPress={sendAudioToBackend}
             disabled={!videoUri}
           >
             <Text style={styles.text}>Get Feedback</Text>
@@ -271,7 +351,7 @@ export default function Record() {
       </View>
     </View>
   );
-}
+};
 
 const styles = StyleSheet.create({
   container: {
@@ -284,8 +364,6 @@ const styles = StyleSheet.create({
     flex: 1,
     width: screenWidth * 0.9,
     height: screenHeight * 0.9,
-    //flexDirection: "column",
-    //justifyContent: "center",
     alignItems: "center",
     backgroundColor: "#D9B382",
     borderRadius: 10,
@@ -296,10 +374,7 @@ const styles = StyleSheet.create({
     marginBottom: 50,
   },
   header: {
-    //flexDirection: "row",
-    //justifyContent: "space-between",
     alignItems: "center",
-    //paddingHorizontal: 20,
     paddingVertical: 10,
     width: "100%",
     backgroundColor: "#D9B382",
@@ -434,4 +509,7 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
   },
 });
+
+
+
 

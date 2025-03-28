@@ -54,7 +54,8 @@ export default function Index() {
           {/* Buttons */}
           <View style={styles.buttonContainer}>
             {/* <TouchableOpacity style={styles.button} onPress={() => navigation.navigate("ChildHomeScreen")}> */}
-            <TouchableOpacity style={styles.button} onPress={() => navigation.navigate("Login")}>
+            {/* TEMPORARY CHANGE FOR CV */}
+            <TouchableOpacity style={styles.button} onPress={() => navigation.navigate("ChildHomeScreen")}>
               <Text style={styles.buttonText}>Login</Text>
             </TouchableOpacity>
           </View>
