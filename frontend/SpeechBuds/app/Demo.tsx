@@ -151,7 +151,7 @@ const DemoScreen = () => {
         <TouchableOpacity
           style={styles.startButton}
           // onPress={() => navigateTo("Record_CV", { wordSet: wordSet, currentIndex: currentIndex, attemptNumber: attempt })}
-          onPress={() => navigateTo("Record_CV", { wordSet: wordSet, currentIndex: currentIndex, attemptNumber: attempt })}
+          onPress={() => navigateTo("Record_CV", { wordSet: wordSet, currentIndex: currentIndex, attemptNumber: attempt, scoreTracking: scoreTracking })}
         >
           <Text style={styles.startButtonText}>Start</Text>
         </TouchableOpacity>
