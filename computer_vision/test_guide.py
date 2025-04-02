@@ -7,6 +7,7 @@ import os
 import pygame
 from typing import Tuple, Dict, List, Any
 import json
+import copy
 
 # Initialize MediaPipe Face Mesh
 mp_face_mesh = mp.solutions.face_mesh
@@ -177,21 +178,62 @@ def apply_fixed_transformation(reference_landmarks, M_jaw, M_mouth):
 
     return aligned_landmarks
 
-# Align landmarks to the center of the screen
-def center_landmarks(aligned_landmarks, frame_width, frame_height):
-    ref_np = np.array(aligned_landmarks, dtype=np.float32)
-    ref_center = np.mean(ref_np, axis=0)
+# # Align landmarks to the center of the screen
+# def center_landmarks(aligned_landmarks, frame_width, frame_height):
+#     ref_np = np.array(aligned_landmarks, dtype=np.float32)
+#     ref_center = np.mean(ref_np, axis=0)
 
-    translation = np.array([frame_width / 2, frame_height / 2]) - ref_center
-    centered_landmarks = (ref_np + translation).astype(int).tolist()
+#     translation = np.array([frame_width / 2, frame_height / 2]) - ref_center
+#     centered_landmarks = (ref_np + translation).astype(int).tolist()
 
-    return centered_landmarks
+#     return centered_landmarks
+
+# Prepare all reference frames with the calculated transformation
+def prepare_all_reference_frames(frame_width, frame_height, M_jaw, M_mouth):
+    global reference_landmarks_all_frames, processed_reference_frames
+    
+    print(f"🔄 Pre-processing all {len(reference_landmarks_all_frames)} reference frames...")
+    processed_reference_frames = []
+    
+    for frame_idx, reference_landmarks in enumerate(reference_landmarks_all_frames):
+        # Apply the fixed transformation to this frame
+        aligned_landmarks = apply_fixed_transformation(reference_landmarks, M_jaw, M_mouth)
+        
+        # Calculate bounds for centering
+        landmark_points = np.array(aligned_landmarks)
+        min_x, min_y = np.min(landmark_points, axis=0)
+        max_x, max_y = np.max(landmark_points, axis=0)
+        
+        # Create landmark data structure for this frame
+        frame_data = {
+            "landmarks": aligned_landmarks,
+            "type": "reference",
+            "indices": {
+                "jaw": JAW_INDICES,
+                "mouth": MOUTH_INDICES
+            },
+            "bounds": {
+                "minX": int(min_x),
+                "maxX": int(max_x),
+                "minY": int(min_y),
+                "maxY": int(max_y)
+            },
+            "frameWidth": frame_width,
+            "frameHeight": frame_height
+        }
+        
+        processed_reference_frames.append(frame_data)
+    
+    print(f"✅ Pre-processed {len(processed_reference_frames)} reference frames")
+    return processed_reference_frames
 
 # Process a frame (called from FastAPI `server.py`)
-def process_frame(frame, reference_landmarks=None, play_reference=False, frame_idx=0, fixed_alignment=False, M_jaw_fixed=None, M_mouth_fixed=None, single_frame=False):
+def process_frame(frame, reference_landmarks=None, play_reference=False, frame_idx=0, fixed_alignment=False, M_jaw_fixed=None, M_mouth_fixed=None, single_frame=False, prepare_all_frames=False):
     try:
         print("📸 Processing frame...")
         frame_height, frame_width = frame.shape[:2]
+        print(f"Backend frame shape: {frame.shape}")
+
         rgb_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
         results = face_mesh.process(rgb_frame)
 
@@ -249,11 +291,34 @@ def process_frame(frame, reference_landmarks=None, play_reference=False, frame_i
                 print("🔍 Computing initial alignment matrices...")
                 M_jaw_fixed, M_mouth_fixed = compute_alignment_matrices(current_reference, user_landmarks)
                 fixed_alignment = True
-
-            # Apply transformation to reference landmarks
+            
+            # If requested, prepare all reference frames with this transformation
+            if prepare_all_frames:
+                processed_reference_frames = prepare_all_reference_frames(
+                    frame_width, frame_height, M_jaw_fixed, M_mouth_fixed
+                )
+                
+                # Return all pre-processed landmarks
+                return {
+                    "type": "all_landmarks",
+                    "landmarks": processed_reference_frames
+                }, frame_idx, fixed_alignment, M_jaw_fixed, M_mouth_fixed
+            
+                # If we're handling a single frame and have pre-processed frames
+            if single_frame and processed_reference_frames:
+                # Return the first reference frame (or current one if we're playing)
+                return processed_reference_frames[current_frame_idx], frame_idx, fixed_alignment, M_jaw_fixed, M_mouth_fixed
+            
+            # Normal processing for a single frame
             aligned_landmarks = apply_fixed_transformation(
                 current_reference, M_jaw_fixed, M_mouth_fixed
             )
+            
+
+            # # Apply transformation to reference landmarks
+            # aligned_landmarks = apply_fixed_transformation(
+            #     current_reference, M_jaw_fixed, M_mouth_fixed
+            # )
 
             # aligned_landmarks = center_landmarks(aligned_landmarks, frame_width, frame_height)
             
@@ -264,6 +329,13 @@ def process_frame(frame, reference_landmarks=None, play_reference=False, frame_i
             
             # Smooth for stability
             smoothed_landmarks = smooth_landmarks(aligned_landmarks)
+
+            # #normalizing
+            # normalized_landmarks = [
+            #     (x / frame_width, y / frame_height) for x, y in user_landmarks
+            # ]
+
+            
             
             # Return reference landmarks
             landmarks_data = {
@@ -278,7 +350,9 @@ def process_frame(frame, reference_landmarks=None, play_reference=False, frame_i
                     "maxX": int(max_x),
                     "minY": int(min_y),
                     "maxY": int(max_y)
-                }
+                },
+                 "frameWidth": frame_width,  # Add original frame dimensions
+                 "frameHeight": frame_height
             }
             
             # Trigger audio playback if this is the first frame of playback

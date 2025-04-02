@@ -10,6 +10,7 @@ import Demo from './Demo';
 import Feedback from './Feedback';
 import Record from './Record';
 import Record_CV from './Record_CV';
+import new_CV from './new_CV';
 import SLPHomeScreen from './SLPHomeScreen';
 import Clients from './Clients';
 import Exercises from './Exercises';
@@ -28,6 +29,7 @@ export default function App() {
         <Stack.Screen name="Demo" component={Demo} options={{ title: 'Example Video' }} />
         <Stack.Screen name="Record" component={Record} options={{ title: 'Record' }} />
         <Stack.Screen name="Record_CV" component={Record_CV} options={{ title: 'Record_CV' }} />
+        <Stack.Screen name="new_CV" component={new_CV} options={{ title: 'new_CV' }} />
         <Stack.Screen name="Feedback" component={Feedback} options={{ title: 'Feedback' }} />
         <Stack.Screen name="Clients" component={Clients} options={{ title: 'Clients'}} />
         <Stack.Screen name="Exercises" component={Exercises} options={{ title: 'Exercises'}} />

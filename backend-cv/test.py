@@ -8,9 +8,9 @@ import sys
 import base64
 import numpy as np
 from contextlib import asynccontextmanager
-from typing import Set, Dict, Any, Optional
+from typing import Set, Dict, Any, Optional, List
 from asyncio import Queue
-import time  # Add this import
+import time
 
 
 # Add the parent directory to Python's module search path
@@ -43,8 +43,7 @@ app.add_middleware(
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
-    expose_headers=["*"]  # Add this line
-
+    expose_headers=["*"]
 )
 
 # Global state
@@ -57,7 +56,7 @@ fixed_alignment = False
 M_jaw_fixed = None
 M_mouth_fixed = None
 
-#find width and height range
+# Find width and height range
 if reference_landmarks_all_frames and len(reference_landmarks_all_frames) > 0:
     landmarks = reference_landmarks_all_frames[0]
     if landmarks:
@@ -68,15 +67,93 @@ if reference_landmarks_all_frames and len(reference_landmarks_all_frames) > 0:
         print(f"Reference landmarks appear to use width range: {min(x_coords)}-{max(x_coords)}")
         print(f"Reference landmarks appear to use height range: {min(y_coords)}-{max(y_coords)}")
 
-async def process_and_send_frame(websocket: WebSocket, frame=None, show_first_reference=False):
+async def precompute_all_landmarks(websocket: WebSocket, frame: np.ndarray) -> List[Dict]:
+    """
+    Precompute all reference landmarks aligned to the user's face.
+    This makes playback smoother as all computation is done upfront.
+    """
+    global fixed_alignment, M_jaw_fixed, M_mouth_fixed
+    
+    print("🔄 Precomputing all aligned reference landmarks...")
+    
+    try:
+        # Initialize list to store all processed landmarks
+        all_landmarks_data = []
+        
+        # First get user's face landmarks for alignment
+        user_landmarks_data, _, _, _, _ = process_frame(
+            frame,
+            reference_landmarks=None,
+            play_reference=False,
+            frame_idx=0,
+            fixed_alignment=False,
+            M_jaw_fixed=None,
+            M_mouth_fixed=None,
+        )
+        
+        if not user_landmarks_data or not user_landmarks_data.get("landmarks"):
+            print("⚠️ No face detected for alignment")
+            return []
+            
+        # Compute alignment matrices
+        M_jaw_fixed, M_mouth_fixed = compute_alignment_matrices(
+            reference_landmarks_all_frames[0], 
+            user_landmarks_data["landmarks"]
+        )
+        fixed_alignment = True
+        
+        # Get frame dimensions for scaling
+        frame_height, frame_width = frame.shape[:2]
+        
+        # Process each reference frame and store the landmarks data
+        for idx, ref_landmarks in enumerate(reference_landmarks_all_frames):
+            landmarks_data, _, _, _, _ = process_frame(
+                frame, 
+                reference_landmarks=reference_landmarks_all_frames,
+                play_reference=True, 
+                frame_idx=idx,
+                fixed_alignment=True,  # Already computed alignment
+                M_jaw_fixed=M_jaw_fixed, 
+                M_mouth_fixed=M_mouth_fixed
+            )
+            
+            # Ensure landmarks type is set correctly
+            if isinstance(landmarks_data, dict) and "landmarks" in landmarks_data:
+                landmarks_data["type"] = "reference"
+                landmarks_data["frameWidth"] = frame_width
+                landmarks_data["frameHeight"] = frame_height
+                all_landmarks_data.append(landmarks_data)
+        
+        print(f"✅ Successfully precomputed {len(all_landmarks_data)} frames of reference landmarks")
+        return all_landmarks_data
+        
+    except Exception as e:
+        print(f"❌ Error in precomputing landmarks: {e}")
+        import traceback
+        traceback.print_exc()
+        return []
+
+async def process_and_send_frame(websocket: WebSocket, frame=None, show_first_reference=False, precompute_all=False):
     """Process a frame and send landmarks back to the client."""
     global frame_idx, fixed_alignment, M_jaw_fixed, M_mouth_fixed
     
     try:
         print("📡 Processing and sending frame...")
 
-         # Process only the initial frame
+        # Process only if we have a frame
         if frame is not None:
+            # If requested to precompute all reference landmarks
+            if precompute_all:
+                all_landmarks = await precompute_all_landmarks(websocket, frame)
+                if all_landmarks:
+                    # Send all precomputed landmarks to client
+                    await websocket.send_json({
+                        "type": "all_landmarks",
+                        "landmarks": all_landmarks
+                    })
+                    print(f"📤 Sent {len(all_landmarks)} precomputed reference landmarks to client")
+                    return
+            
             # Process user's face to get landmarks for alignment
             user_landmarks_data, _, _, _, _ = process_frame(
                 frame,
@@ -101,7 +178,7 @@ async def process_and_send_frame(websocket: WebSocket, frame=None, show_first_re
                 )
                 fixed_alignment = True
                 
-          # Determine if we're showing first reference frame or playing animation
+            # Determine if we're showing first reference frame or playing animation
             if show_first_reference or not play_reference:
                 # Show first reference frame
                 landmarks_data, _, _, _, _ = process_frame(
@@ -117,6 +194,10 @@ async def process_and_send_frame(websocket: WebSocket, frame=None, show_first_re
                 # Ensure landmarks type is set to reference
                 if isinstance(landmarks_data, dict) and "landmarks" in landmarks_data:
                     landmarks_data["type"] = "reference"
+                    # Add frame dimensions for proper scaling on client
+                    frame_height, frame_width = frame.shape[:2]
+                    landmarks_data["frameWidth"] = frame_width
+                    landmarks_data["frameHeight"] = frame_height
                     
                 # Send first reference frame landmarks
                 await websocket.send_json({
@@ -128,8 +209,6 @@ async def process_and_send_frame(websocket: WebSocket, frame=None, show_first_re
             
             # If playing reference, we process normally with the sequence
             elif play_reference and frame_idx < len(reference_landmarks_all_frames):
-        
-                
                 landmarks_data, new_frame_idx, fixed_alignment, M_jaw_fixed, M_mouth_fixed = process_frame(
                     frame, 
                     reference_landmarks=reference_landmarks_all_frames,
@@ -140,11 +219,15 @@ async def process_and_send_frame(websocket: WebSocket, frame=None, show_first_re
                     M_mouth_fixed=M_mouth_fixed
                 )
             
-        #     # Ensure landmarks type is set to reference
+                # Ensure landmarks type is set to reference
                 if isinstance(landmarks_data, dict) and "landmarks" in landmarks_data:
                     landmarks_data["type"] = "reference"
+                    # Add frame dimensions
+                    frame_height, frame_width = frame.shape[:2]
+                    landmarks_data["frameWidth"] = frame_width
+                    landmarks_data["frameHeight"] = frame_height
             
-            # # Send reference landmarks with clear type information
+                # Send reference landmarks with clear type information
                 await websocket.send_json({
                     "type": "landmarks",
                     "data": landmarks_data
@@ -155,10 +238,6 @@ async def process_and_send_frame(websocket: WebSocket, frame=None, show_first_re
                 # Update frame index for next iteration
                 frame_idx = new_frame_idx
             
-            
-        # We no longer want to send live user landmarks even if CV is running
-        # So we've removed that part of the function
-        
     except Exception as e:
         print(f"❌ Error processing frame: {e}")
         import traceback
@@ -175,7 +254,6 @@ async def websocket_endpoint(websocket: WebSocket):
     print("🟡 Incoming WebSocket Connection Attempt...")
     print(f"🟡 Client headers: {websocket.headers}")
 
-
     await websocket.accept()
     clients.add(websocket)
     client_frames[websocket] = None  # Initialize frame storage for this client
@@ -184,8 +262,8 @@ async def websocket_endpoint(websocket: WebSocket):
     # Send initial state to client
     await websocket.send_json({
         "type": "status",
-        "cv_running": cv_running,
-        "play_reference": play_reference
+        "cv_running": False,
+        "play_reference": False
     })
 
     try:
@@ -197,8 +275,6 @@ async def websocket_endpoint(websocket: WebSocket):
             command = json.loads(data)
             if command["type"] == "frame":
                 try: 
-                    
-
                     print("📩 Received frame from client!")
                     # Ensure proper base64 padding
                     base64_str = command["data"]
@@ -218,11 +294,18 @@ async def websocket_endpoint(websocket: WebSocket):
                         # Store the latest frame for this client
                         client_frames[websocket] = frame
                         
-                        # Process frame based on current mode
-                        if cv_running and not is_processing and not play_reference:
-                            is_processing = True
-                            await process_and_send_frame(websocket, frame)
-                            is_processing = False
+                         # Always precompute all landmarks when requested
+                        if command.get("prepare_all_frames", True):
+                            print("🔄 Precomputing all reference frames")
+                            all_landmarks = await precompute_all_landmarks(websocket, frame)
+                            if all_landmarks:
+                                # Send all precomputed landmarks to client
+                                await websocket.send_json({
+                                    "type": "all_landmarks",
+                                    "landmarks": all_landmarks
+                                })
+                                print(f"📤 Sent {len(all_landmarks)} precomputed reference landmarks to client")
+                       
                        
                 except Exception as e:
                      print(f"❌ Frame processing error: {e}")
@@ -230,12 +313,11 @@ async def websocket_endpoint(websocket: WebSocket):
                      traceback.print_exc()
                      is_processing = False
 
-
             elif command["type"] == "toggle":
                 cv_running = command["value"]
                 print(f"🔄 CV Running: {cv_running}")
                 
-                # If turning off CV, also stop reference playback
+                # Reset state when turning on CV
                 if cv_running:
                     play_reference = False
                     frame_idx = 0
@@ -243,55 +325,60 @@ async def websocket_endpoint(websocket: WebSocket):
                     M_jaw_fixed = None
                     M_mouth_fixed = None
 
-                     # Process initial frame to show first reference frame
+                    # Process initial frame to show first reference frame
                     frame = client_frames.get(websocket)
                     if frame is not None:
-                        # This call should show the first reference frame, not user landmarks
+                        # # First compute all landmarks and send to client for local playback
+                        # await process_and_send_frame(websocket, frame, precompute_all=True)
+                        # Then show the first reference frame
                         await process_and_send_frame(websocket, frame, show_first_reference=True)
                 else:
-                    # If turning off CV, also stop reference playback
-                    # play_reference = False
-                    # frame_idx = 0
+                    # If turning off CV, reset state
                     fixed_alignment = False
                     M_jaw_fixed = None
                     M_mouth_fixed = None
+                
                 # Send updated state back
                 await websocket.send_json({
                     "type": "status",
                     "cv_running": cv_running,
-                    "play_reference": play_reference
+                    "play_reference": False
                 })
             
             elif command["type"] == "play_reference":
-                play_reference = command["value"]
-                print(f"🎵 Play Reference: {play_reference}")
-                
-                if play_reference:
-                    # Stop live CV when playing reference
-                    frame_idx = 0
-
-                    
-                    # # Play audio if supported
-                    # print("🎵 Playing reference audio")
-                    # try:
-                    #     play_audio()
-                    # except Exception as e:
-                    #     print(f"⚠️ Error playing audio: {e}")
-                    
-                    # Start reference playback as a separate task
-                    asyncio.create_task(reference_playback_loop(websocket))
-                else:
-                    # Reset state when stopping reference playback
-                    frame_idx = 0
-                    # fixed_alignment = False
-
-                
-                # Send updated state back
-                await websocket.send_json({
-                    "type": "status",
-                    "cv_running": cv_running,
-                    "play_reference": play_reference
+               await websocket.send_json({
+                    "type": "play_reference",
+                    "value": command["value"]
                 })
+
+            print(f"🎵 Play Reference: {play_reference}")
+                
+                # if play_reference:
+                #     # Reset state for playing reference
+                #     frame_idx = 0
+                    
+                #     # We no longer start server-side animation here since it will be handled by the client
+                #     # Just acknowledge the request
+                #     await websocket.send_json({
+                #         "type": "play_reference",
+                #         "value": True
+                #     })
+                # else:
+                #     # Stop reference playback
+                #     frame_idx = 0
+                    
+                #     # Acknowledge stopping
+                #     await websocket.send_json({
+                #         "type": "play_reference",
+                #         "value": False
+                #     })
+                
+                # # Send updated state back
+                # await websocket.send_json({
+                #     "type": "status",
+                #     "cv_running": cv_running,
+                #     "play_reference": play_reference
+                # })
 
     except WebSocketDisconnect:
         print(f"❌ WebSocket Disconnected: {websocket.client}")
@@ -304,133 +391,918 @@ async def websocket_endpoint(websocket: WebSocket):
         if websocket in client_frames:
             del client_frames[websocket]
 
-# Add to global variables
-frame_queue = Queue()
-is_processing = False
-
-async def reference_playback_loop(websocket: WebSocket):
-    """Continuously send reference landmarks while play_reference is active."""
-    global play_reference, frame_idx, fixed_alignment, M_jaw_fixed, M_mouth_fixed, is_processing
-
-    try:
-        
-        # Reset state at beginning
-        frame_idx = 0
-        fixed_alignment = False
-        M_jaw_fixed = None
-        M_mouth_fixed = None
-        
-        # Notify client that reference playback has started
-        await websocket.send_json({
-            "type": "play_reference",
-            "value": True
-        })
-
-        # First, get initial frame and compute alignment matrices
-        initial_frame = client_frames.get(websocket)
-        if initial_frame is None:
-            print("⚠️ No frame available to compute initial alignment")
-            await websocket.send_json({
-                "type": "error",
-                "message": "No camera frame available for alignment"
-            })
-            play_reference = False
-            return
-            
-       
-
-        # Main playback loop
-        total_frames = len(reference_landmarks_all_frames)
-        while play_reference and websocket in clients and frame_idx < total_frames:
-            is_processing = True
-            start_time = time.time()
-
-            # Get latest frame or use initial frame if none available
-            current_frame = client_frames.get(websocket, initial_frame)
-                  
-            # Process frame with current index
-            landmarks_data, new_frame_idx, fixed_alignment, M_jaw_fixed, M_mouth_fixed = process_frame(
-                current_frame, 
-                reference_landmarks=reference_landmarks_all_frames,
-                play_reference=True, 
-                frame_idx=frame_idx,
-                fixed_alignment=fixed_alignment,
-                M_jaw_fixed=M_jaw_fixed, 
-                M_mouth_fixed=M_mouth_fixed
-            )
-
-            # Ensure landmarks type is set to reference
-            if isinstance(landmarks_data, dict) and "landmarks" in landmarks_data:
-                landmarks_data["type"] = "reference"
-            
-            # Send reference landmarks
-            await websocket.send_json({
-                "type": "landmarks",
-                "data": landmarks_data
-            })
-
-            print(f"📤 Sent reference landmarks to client (frame {frame_idx}/{total_frames})")
-            
-            # Update frame index (increment by 1)
-            frame_idx += 1
-            
-            # Control timing for smooth playback (~30fps)
-            processing_time = time.time() - start_time
-            target_frame_time = 0.033  # ~30fps
-            sleep_time = max(0.001, target_frame_time - processing_time)
-            
-            print(f"Frame {frame_idx}/{total_frames} processed in {processing_time:.3f}s, waiting {sleep_time:.3f}s")
-            await asyncio.sleep(sleep_time)
-            is_processing = False
-
-         # Notify when playback is complete
-        await websocket.send_json({
-            "type": "reference_completed",
-            "message": "Reference playback completed"
-        })
-        
-        # Reset state after playback completes
-        play_reference = False
-        frame_idx = 0
-
-    except WebSocketDisconnect:
-        print("Client disconnected during reference playback")
-    except asyncio.CancelledError:
-        print("Reference playback task cancelled")
-    except Exception as e:
-        print(f"❌ Reference playback error: {e}")
-        import traceback
-        traceback.print_exc()
-        
-        # Notify client of error
-        try:
-            await websocket.send_json({
-                "type": "error",
-                "message": f"Reference playback error: {str(e)}"
-            })
-        except:
-            pass  # Client might be disconnected
-            
-    finally:
-        # Reset state when playback ends for any reason
-        play_reference = False
-        is_processing = False
-        
-        # Notify client that reference playback has stopped
-        try:
-            await websocket.send_json({
-                "type": "play_reference",
-                "value": False
-            })
-        except:
-            pass  
-   
-
 
 if __name__ == "__main__":
     import uvicorn
     # Run on 0.0.0.0 to make it accessible from other devices on the network
     uvicorn.run("test:app", host="0.0.0.0", port=8000, reload=True)
+
+
+
+
+#Updated backend with the check frame instance but currently not properly working
+
+# from fastapi import FastAPI, WebSocket, WebSocketDisconnect
+# from fastapi.middleware.cors import CORSMiddleware
+# import asyncio
+# import cv2
+# import json
+# import os
+# import sys
+# import base64
+# import numpy as np
+# from contextlib import asynccontextmanager
+# from typing import Set, Dict, Any, Optional, List
+# from asyncio import Queue
+# import time
+
+
+# # Add the parent directory to Python's module search path
+# sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+
+# # Import from computer_vision
+# from computer_vision.test_guide import process_frame, load_reference_video_landmarks, play_audio, compute_alignment_matrices
+
+# # Dynamically find the correct path for landmarks CSV
+# csv_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "computer_vision", "reference_landmarks.csv"))
+
+# # Debugging: Print the computed path
+# print(f"🔍 Looking for reference_landmarks.csv at: {csv_path}")
+
+# # Ensure the file exists before loading
+# if not os.path.exists(csv_path):
+#     raise FileNotFoundError(f"🚨 Error: File not found at {csv_path}")
+
+# # Load reference landmarks
+# reference_landmarks_all_frames = load_reference_video_landmarks(csv_path)
+# print(f"✅ Loaded {len(reference_landmarks_all_frames)} frames of reference landmarks")
+
+# # Initialize FastAPI app
+# app = FastAPI()
+
+# # Add CORS middleware
+# app.add_middleware(
+#     CORSMiddleware,
+#     allow_origins=["*"],
+#     allow_credentials=True,
+#     allow_methods=["*"],
+#     allow_headers=["*"],
+#     expose_headers=["*"]
+# )
+
+# # Global state
+# clients: Set[WebSocket] = set()
+# client_frames: Dict[WebSocket, Optional[np.ndarray]] = {}  # Store the latest frame for each client
+# cv_running = False
+# play_reference = False
+# frame_idx = 0
+# fixed_alignment = False
+# M_jaw_fixed = None
+# M_mouth_fixed = None
+
+# # Find width and height range
+# if reference_landmarks_all_frames and len(reference_landmarks_all_frames) > 0:
+#     landmarks = reference_landmarks_all_frames[0]
+#     if landmarks:
+#         # Find min/max coordinates
+#         x_coords = [point[0] for point in landmarks]
+#         y_coords = [point[1] for point in landmarks]
+        
+#         print(f"Reference landmarks appear to use width range: {min(x_coords)}-{max(x_coords)}")
+#         print(f"Reference landmarks appear to use height range: {min(y_coords)}-{max(y_coords)}")
+
+# async def check_face_detection(frame: np.ndarray) -> bool:
+#     """
+#     Check if a face is detected in the given frame.
+#     Returns True if a face is detected, False otherwise.
+#     """
+#     try:
+#         print("🔍 Checking for face in frame...")
+        
+#         # Process frame to get user landmarks
+#         user_landmarks_data, _, _, _, _ = process_frame(
+#             frame,
+#             reference_landmarks=None,
+#             play_reference=False,
+#             frame_idx=0,
+#             fixed_alignment=False,
+#             M_jaw_fixed=None,
+#             M_mouth_fixed=None,
+#         )
+        
+#         # Check if landmarks were detected
+#         if user_landmarks_data and user_landmarks_data.get("landmarks"):
+#             print("✅ Face detected in frame")
+#             return True
+#         else:
+#             print("⚠️ No face detected in frame")
+#             return False
+            
+#     except Exception as e:
+#         print(f"❌ Error checking face detection: {e}")
+#         import traceback
+#         traceback.print_exc()
+#         return False
+    
+
+# async def precompute_all_landmarks(websocket: WebSocket, frame: np.ndarray) -> List[Dict]:
+#     """
+#     Precompute all reference landmarks aligned to the user's face.
+#     This makes playback smoother as all computation is done upfront.
+#     """
+#     global fixed_alignment, M_jaw_fixed, M_mouth_fixed
+    
+#     print("🔄 Precomputing all aligned reference landmarks...")
+    
+#     try:
+#         # Initialize list to store all processed landmarks
+#         all_landmarks_data = []
+        
+#         # First get user's face landmarks for alignment
+#         user_landmarks_data, _, _, _, _ = process_frame(
+#             frame,
+#             reference_landmarks=None,
+#             play_reference=False,
+#             frame_idx=0,
+#             fixed_alignment=False,
+#             M_jaw_fixed=None,
+#             M_mouth_fixed=None,
+#         )
+        
+#         if not user_landmarks_data or not user_landmarks_data.get("landmarks"):
+#             print("⚠️ No face detected for alignment")
+#             return []
+            
+#         # Compute alignment matrices
+#         M_jaw_fixed, M_mouth_fixed = compute_alignment_matrices(
+#             reference_landmarks_all_frames[0], 
+#             user_landmarks_data["landmarks"]
+#         )
+#         fixed_alignment = True
+        
+#         # Get frame dimensions for scaling
+#         frame_height, frame_width = frame.shape[:2]
+        
+#         # Process each reference frame and store the landmarks data
+#         for idx, ref_landmarks in enumerate(reference_landmarks_all_frames):
+#             landmarks_data, _, _, _, _ = process_frame(
+#                 frame, 
+#                 reference_landmarks=reference_landmarks_all_frames,
+#                 play_reference=True, 
+#                 frame_idx=idx,
+#                 fixed_alignment=True,  # Already computed alignment
+#                 M_jaw_fixed=M_jaw_fixed, 
+#                 M_mouth_fixed=M_mouth_fixed
+#             )
+            
+#             # Ensure landmarks type is set correctly
+#             if isinstance(landmarks_data, dict) and "landmarks" in landmarks_data:
+#                 landmarks_data["type"] = "reference"
+#                 landmarks_data["frameWidth"] = frame_width
+#                 landmarks_data["frameHeight"] = frame_height
+#                 all_landmarks_data.append(landmarks_data)
+        
+#         print(f"✅ Successfully precomputed {len(all_landmarks_data)} frames of reference landmarks")
+#         return all_landmarks_data
+        
+#     except Exception as e:
+#         print(f"❌ Error in precomputing landmarks: {e}")
+#         import traceback
+#         traceback.print_exc()
+#         return []
+
+# async def process_and_send_frame(websocket: WebSocket, frame=None, show_first_reference=False, precompute_all=False):
+#     """Process a frame and send landmarks back to the client."""
+#     global frame_idx, fixed_alignment, M_jaw_fixed, M_mouth_fixed
+    
+#     try:
+#         print("📡 Processing and sending frame...")
+
+#         # Process only if we have a frame
+#         if frame is not None:
+#             # If requested to precompute all reference landmarks
+#             if precompute_all:
+#                 all_landmarks = await precompute_all_landmarks(websocket, frame)
+#                 if all_landmarks:
+#                     # Send all precomputed landmarks to client
+#                     await websocket.send_json({
+#                         "type": "all_landmarks",
+#                         "landmarks": all_landmarks
+#                     })
+#                     print(f"📤 Sent {len(all_landmarks)} precomputed reference landmarks to client")
+#                     return
+            
+#             # Process user's face to get landmarks for alignment
+#             user_landmarks_data, _, _, _, _ = process_frame(
+#                 frame,
+#                 reference_landmarks=None,
+#                 play_reference=False,
+#                 frame_idx=0,
+#                 fixed_alignment=False,
+#                 M_jaw_fixed=None,
+#                 M_mouth_fixed=None,
+#             )
+            
+#             if not user_landmarks_data or not user_landmarks_data.get("landmarks"):
+#                 print("⚠️ No face detected for alignment")
+#                 return
+                
+#             # Compute alignment matrices if needed
+#             if not fixed_alignment or M_jaw_fixed is None or M_mouth_fixed is None:
+#                 print("🔍 Computing initial alignment matrices...")
+#                 M_jaw_fixed, M_mouth_fixed = compute_alignment_matrices(
+#                     reference_landmarks_all_frames[0], 
+#                     user_landmarks_data["landmarks"]
+#                 )
+#                 fixed_alignment = True
+                
+#             # Determine if we're showing first reference frame or playing animation
+#             if show_first_reference or not play_reference:
+#                 # Show first reference frame
+#                 landmarks_data, _, _, _, _ = process_frame(
+#                     frame, 
+#                     reference_landmarks=reference_landmarks_all_frames,
+#                     play_reference=True, 
+#                     frame_idx=0,  # Always use first frame
+#                     fixed_alignment=fixed_alignment,
+#                     M_jaw_fixed=M_jaw_fixed, 
+#                     M_mouth_fixed=M_mouth_fixed
+#                 )
+            
+#                 # Ensure landmarks type is set to reference
+#                 if isinstance(landmarks_data, dict) and "landmarks" in landmarks_data:
+#                     landmarks_data["type"] = "reference"
+#                     # Add frame dimensions for proper scaling on client
+#                     frame_height, frame_width = frame.shape[:2]
+#                     landmarks_data["frameWidth"] = frame_width
+#                     landmarks_data["frameHeight"] = frame_height
+                    
+#                 # Send first reference frame landmarks
+#                 await websocket.send_json({
+#                     "type": "landmarks",
+#                     "data": landmarks_data
+#                 })
+            
+#                 print(f"📤 Sent first reference frame landmarks to client")
+            
+#             # If playing reference, we process normally with the sequence
+#             elif play_reference and frame_idx < len(reference_landmarks_all_frames):
+#                 landmarks_data, new_frame_idx, fixed_alignment, M_jaw_fixed, M_mouth_fixed = process_frame(
+#                     frame, 
+#                     reference_landmarks=reference_landmarks_all_frames,
+#                     play_reference=True, 
+#                     frame_idx=frame_idx,
+#                     fixed_alignment=fixed_alignment,
+#                     M_jaw_fixed=M_jaw_fixed, 
+#                     M_mouth_fixed=M_mouth_fixed
+#                 )
+            
+#                 # Ensure landmarks type is set to reference
+#                 if isinstance(landmarks_data, dict) and "landmarks" in landmarks_data:
+#                     landmarks_data["type"] = "reference"
+#                     # Add frame dimensions
+#                     frame_height, frame_width = frame.shape[:2]
+#                     landmarks_data["frameWidth"] = frame_width
+#                     landmarks_data["frameHeight"] = frame_height
+            
+#                 # Send reference landmarks with clear type information
+#                 await websocket.send_json({
+#                     "type": "landmarks",
+#                     "data": landmarks_data
+#                 })
+            
+#                 print(f"📤 Sent reference landmarks to client (frame {frame_idx})")
+                
+#                 # Update frame index for next iteration
+#                 frame_idx = new_frame_idx
+            
+#     except Exception as e:
+#         print(f"❌ Error processing frame: {e}")
+#         import traceback
+#         traceback.print_exc()
+
+# @app.websocket("/ws")
+# async def websocket_endpoint(websocket: WebSocket):
+#     """Handles WebSocket connections and processes user input."""
+#     global cv_running, play_reference, frame_idx, fixed_alignment, M_jaw_fixed, M_mouth_fixed
+
+#     # Flag to track if we're currently processing a frame
+#     is_processing = False
+
+#     print("🟡 Incoming WebSocket Connection Attempt...")
+#     print(f"🟡 Client headers: {websocket.headers}")
+
+#     await websocket.accept()
+#     clients.add(websocket)
+#     client_frames[websocket] = None  # Initialize frame storage for this client
+#     print(f"✅ WebSocket Connected: {websocket.client}")
+
+#     # Send initial state to client
+#     await websocket.send_json({
+#         "type": "status",
+#         "cv_running": False,
+#         "play_reference": False
+#     })
+
+#     try:
+#         while True:
+#             data = await websocket.receive_text()
+            
+#             print(f"📩 Received from client: {data[:50]}...")  # Truncated for logs
+
+#             command = json.loads(data)
+#             if command["type"] == "check_face":
+#                 try: 
+#                     print("📩 Received frame from client!")
+#                     # Ensure proper base64 padding
+#                     base64_str = command["data"]
+#                     padding = len(base64_str) % 4
+#                     if padding:
+#                         base64_str += "=" * (4 - padding)
+                        
+#                     # Decode the image
+#                     image_data = base64.b64decode(base64_str)
+#                     nparr = np.frombuffer(image_data, np.uint8)
+#                     frame = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
+                    
+#                     if frame is None:
+#                         print("❌ Failed to decode frame!")
+#                         await websocket.send_json({
+#                             "type": "face_check_result",
+#                             "face_detected": False
+#                         })
+#                     else:
+#                         print(f"📸 Frame decoded: {frame.shape}")
+
+#                         # Check if a face is detected
+#                         face_detected = await check_face_detection(frame)
+
+#                            # Store the frame if face is detected
+#                         if face_detected:
+#                             client_frames[websocket] = frame
+                        
+#                         # Send result back to client
+#                         await websocket.send_json({
+#                             "type": "face_check_result",
+#                             "face_detected": face_detected
+#                         })
+#                         print(f"📤 Face check result: {'✅ Face detected' if face_detected else '❌ No face detected'}")
+                        
+#                     continue
+
+#                 except Exception as e:
+#                     print(f"❌ Face check error: {e}")
+#                     import traceback
+#                     traceback.print_exc()
+#                     await websocket.send_json({
+#                         "type": "face_check_result",
+#                         "face_detected": False,
+#                         "error": str(e)
+#                     })
+
+#                     continue
+
+#               # Process other commands only if not currently processing a frame
+#             # This prevents race conditions
+#             if is_processing:
+#                 print("⏳ Still processing previous frame, ignoring new command")
+#                 continue
+                    
+#             elif command["type"] == "frame":
+#                 try: 
+#                     is_processing = True
+#                     print("📩 Received frame from client!")
+#                     # Ensure proper base64 padding
+#                     base64_str = command["data"]
+#                     padding = len(base64_str) % 4
+#                     if padding:
+#                         base64_str += "=" * (4 - padding)
+                        
+#                     # Decode the image
+#                     image_data = base64.b64decode(base64_str)
+#                     nparr = np.frombuffer(image_data, np.uint8)
+#                     frame = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
+                    
+#                     if frame is None:
+#                         print("❌ Failed to decode frame!")
+#                     else:
+#                         print(f"📸 Frame decoded: {frame.shape}")
+#                         # Store the latest frame for this client
+#                         client_frames[websocket] = frame
+                        
+#                          # Always precompute all landmarks when requested
+#                         if command.get("prepare_all_frames", True):
+#                             print("🔄 Precomputing all reference frames")
+#                             all_landmarks = await precompute_all_landmarks(websocket, frame)
+#                             if all_landmarks:
+#                                 # Send all precomputed landmarks to client
+#                                 await websocket.send_json({
+#                                     "type": "all_landmarks",
+#                                     "landmarks": all_landmarks
+#                                 })
+#                                 print(f"📤 Sent {len(all_landmarks)} precomputed reference landmarks to client")
+                       
+                       
+#                 except Exception as e:
+#                      print(f"❌ Frame processing error: {e}")
+#                      import traceback
+#                      traceback.print_exc()
+#                      is_processing = False
+#                 finally: 
+#                     is_processing = False
+
+#             elif command["type"] == "toggle":
+#                 cv_running = command["value"]
+#                 print(f"🔄 CV Running: {cv_running}")
+                
+#                 # Reset state when turning on CV
+#                 if cv_running:
+#                     play_reference = False
+#                     frame_idx = 0
+#                     fixed_alignment = False
+#                     M_jaw_fixed = None
+#                     M_mouth_fixed = None
+
+#                     # Process initial frame to show first reference frame
+#                     frame = client_frames.get(websocket)
+#                     if frame is not None:
+#                         # # First compute all landmarks and send to client for local playback
+#                         # Then show the first reference frame
+#                         await process_and_send_frame(websocket, frame, show_first_reference=True)
+#                 else:
+#                     # If turning off CV, reset state
+#                     fixed_alignment = False
+#                     M_jaw_fixed = None
+#                     M_mouth_fixed = None
+                
+#                 # Send updated state back
+#                 await websocket.send_json({
+#                     "type": "status",
+#                     "cv_running": cv_running,
+#                     "play_reference": False
+#                 })
+            
+#             elif command["type"] == "play_reference":
+#                await websocket.send_json({
+#                     "type": "play_reference",
+#                     "value": command["value"]
+#                 })
+
+#             print(f"🎵 Play Reference: {play_reference}")
+
+#     except WebSocketDisconnect:
+#         print(f"❌ WebSocket Disconnected: {websocket.client}")
+#     except Exception as e:
+#         print(f"❌ WebSocket Error: {e}")
+#         import traceback
+#         traceback.print_exc()
+#     finally:
+#         clients.remove(websocket)
+#         if websocket in client_frames:
+#             del client_frames[websocket]
+
+
+# if __name__ == "__main__":
+#     import uvicorn
+#     # Run on 0.0.0.0 to make it accessible from other devices on the network
+#     uvicorn.run("test:app", host="0.0.0.0", port=8000, reload=True)
+
+
+
+# from fastapi import FastAPI, WebSocket, WebSocketDisconnect
+# from fastapi.middleware.cors import CORSMiddleware
+# import asyncio
+# import cv2
+# import json
+# import os
+# import sys
+# import base64
+# import numpy as np
+# from contextlib import asynccontextmanager
+# from typing import Set, Dict, Any, Optional
+# from asyncio import Queue
+# import time  # Add this import
+
+
+# # Add the parent directory to Python's module search path
+# sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+
+# # Import from computer_vision
+# from computer_vision.test_guide import process_frame, load_reference_video_landmarks, play_audio, compute_alignment_matrices
+
+# # Dynamically find the correct path for landmarks CSV
+# csv_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "computer_vision", "reference_landmarks.csv"))
+
+# # Debugging: Print the computed path
+# print(f"🔍 Looking for reference_landmarks.csv at: {csv_path}")
+
+# # Ensure the file exists before loading
+# if not os.path.exists(csv_path):
+#     raise FileNotFoundError(f"🚨 Error: File not found at {csv_path}")
+
+# # Load reference landmarks
+# reference_landmarks_all_frames = load_reference_video_landmarks(csv_path)
+# print(f"✅ Loaded {len(reference_landmarks_all_frames)} frames of reference landmarks")
+
+# # Initialize FastAPI app
+# app = FastAPI()
+
+# # Add CORS middleware
+# app.add_middleware(
+#     CORSMiddleware,
+#     allow_origins=["*"],
+#     allow_credentials=True,
+#     allow_methods=["*"],
+#     allow_headers=["*"],
+#     expose_headers=["*"]  # Add this line
+
+# )
+
+# # Global state
+# clients: Set[WebSocket] = set()
+# client_frames: Dict[WebSocket, Optional[np.ndarray]] = {}  # Store the latest frame for each client
+# cv_running = False
+# play_reference = False
+# frame_idx = 0
+# fixed_alignment = False
+# M_jaw_fixed = None
+# M_mouth_fixed = None
+
+# #find width and height range
+# if reference_landmarks_all_frames and len(reference_landmarks_all_frames) > 0:
+#     landmarks = reference_landmarks_all_frames[0]
+#     if landmarks:
+#         # Find min/max coordinates
+#         x_coords = [point[0] for point in landmarks]
+#         y_coords = [point[1] for point in landmarks]
+        
+#         print(f"Reference landmarks appear to use width range: {min(x_coords)}-{max(x_coords)}")
+#         print(f"Reference landmarks appear to use height range: {min(y_coords)}-{max(y_coords)}")
+
+# async def process_and_send_frame(websocket: WebSocket, frame=None, show_first_reference=False):
+#     """Process a frame and send landmarks back to the client."""
+#     global frame_idx, fixed_alignment, M_jaw_fixed, M_mouth_fixed
+    
+#     try:
+#         print("📡 Processing and sending frame...")
+
+#          # Process only the initial frame
+#         if frame is not None:
+#             # Process user's face to get landmarks for alignment
+#             user_landmarks_data, _, _, _, _ = process_frame(
+#                 frame,
+#                 reference_landmarks=None,
+#                 play_reference=False,
+#                 frame_idx=0,
+#                 fixed_alignment=False,
+#                 M_jaw_fixed=None,
+#                 M_mouth_fixed=None,
+#             )
+            
+#             if not user_landmarks_data or not user_landmarks_data.get("landmarks"):
+#                 print("⚠️ No face detected for alignment")
+#                 return
+                
+#             # Compute alignment matrices if needed
+#             if not fixed_alignment or M_jaw_fixed is None or M_mouth_fixed is None:
+#                 print("🔍 Computing initial alignment matrices...")
+#                 M_jaw_fixed, M_mouth_fixed = compute_alignment_matrices(
+#                     reference_landmarks_all_frames[0], 
+#                     user_landmarks_data["landmarks"]
+#                 )
+#                 fixed_alignment = True
+                
+#           # Determine if we're showing first reference frame or playing animation
+#             if show_first_reference or not play_reference:
+#                 # Show first reference frame
+#                 landmarks_data, _, _, _, _ = process_frame(
+#                     frame, 
+#                     reference_landmarks=reference_landmarks_all_frames,
+#                     play_reference=True, 
+#                     frame_idx=0,  # Always use first frame
+#                     fixed_alignment=fixed_alignment,
+#                     M_jaw_fixed=M_jaw_fixed, 
+#                     M_mouth_fixed=M_mouth_fixed
+#                 )
+            
+#                 # Ensure landmarks type is set to reference
+#                 if isinstance(landmarks_data, dict) and "landmarks" in landmarks_data:
+#                     landmarks_data["type"] = "reference"
+                    
+#                 # Send first reference frame landmarks
+#                 await websocket.send_json({
+#                     "type": "landmarks",
+#                     "data": landmarks_data
+#                 })
+            
+#                 print(f"📤 Sent first reference frame landmarks to client")
+            
+#             # If playing reference, we process normally with the sequence
+#             elif play_reference and frame_idx < len(reference_landmarks_all_frames):
+        
+                
+#                 landmarks_data, new_frame_idx, fixed_alignment, M_jaw_fixed, M_mouth_fixed = process_frame(
+#                     frame, 
+#                     reference_landmarks=reference_landmarks_all_frames,
+#                     play_reference=True, 
+#                     frame_idx=frame_idx,
+#                     fixed_alignment=fixed_alignment,
+#                     M_jaw_fixed=M_jaw_fixed, 
+#                     M_mouth_fixed=M_mouth_fixed
+#                 )
+            
+#         #     # Ensure landmarks type is set to reference
+#                 if isinstance(landmarks_data, dict) and "landmarks" in landmarks_data:
+#                     landmarks_data["type"] = "reference"
+            
+#             # # Send reference landmarks with clear type information
+#                 await websocket.send_json({
+#                     "type": "landmarks",
+#                     "data": landmarks_data
+#                 })
+            
+#                 print(f"📤 Sent reference landmarks to client (frame {frame_idx})")
+                
+#                 # Update frame index for next iteration
+#                 frame_idx = new_frame_idx
+            
+            
+#         # We no longer want to send live user landmarks even if CV is running
+#         # So we've removed that part of the function
+        
+#     except Exception as e:
+#         print(f"❌ Error processing frame: {e}")
+#         import traceback
+#         traceback.print_exc()
+
+# @app.websocket("/ws")
+# async def websocket_endpoint(websocket: WebSocket):
+#     """Handles WebSocket connections and processes user input."""
+#     global cv_running, play_reference, frame_idx, fixed_alignment, M_jaw_fixed, M_mouth_fixed
+
+#     # Flag to track if we're currently processing a frame
+#     is_processing = False
+
+#     print("🟡 Incoming WebSocket Connection Attempt...")
+#     print(f"🟡 Client headers: {websocket.headers}")
+
+
+#     await websocket.accept()
+#     clients.add(websocket)
+#     client_frames[websocket] = None  # Initialize frame storage for this client
+#     print(f"✅ WebSocket Connected: {websocket.client}")
+
+#     # Send initial state to client
+#     await websocket.send_json({
+#         "type": "status",
+#         "cv_running": cv_running,
+#         "play_reference": play_reference
+#     })
+
+#     try:
+#         while True:
+#             data = await websocket.receive_text()
+            
+#             print(f"📩 Received from client: {data[:50]}...")  # Truncated for logs
+
+#             command = json.loads(data)
+#             if command["type"] == "frame":
+#                 try: 
+                    
+
+#                     print("📩 Received frame from client!")
+#                     # Ensure proper base64 padding
+#                     base64_str = command["data"]
+#                     padding = len(base64_str) % 4
+#                     if padding:
+#                         base64_str += "=" * (4 - padding)
+                        
+#                     # Decode the image
+#                     image_data = base64.b64decode(base64_str)
+#                     nparr = np.frombuffer(image_data, np.uint8)
+#                     frame = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
+                    
+#                     if frame is None:
+#                         print("❌ Failed to decode frame!")
+#                     else:
+#                         print(f"📸 Frame decoded: {frame.shape}")
+#                         # Store the latest frame for this client
+#                         client_frames[websocket] = frame
+                        
+#                         # Process frame based on current mode
+#                         if cv_running and not is_processing and not play_reference:
+#                             is_processing = True
+#                             await process_and_send_frame(websocket, frame)
+#                             is_processing = False
+                       
+#                 except Exception as e:
+#                      print(f"❌ Frame processing error: {e}")
+#                      import traceback
+#                      traceback.print_exc()
+#                      is_processing = False
+
+
+#             elif command["type"] == "toggle":
+#                 cv_running = command["value"]
+#                 print(f"🔄 CV Running: {cv_running}")
+                
+#                 # If turning off CV, also stop reference playback
+#                 if cv_running:
+#                     play_reference = False
+#                     frame_idx = 0
+#                     fixed_alignment = False
+#                     M_jaw_fixed = None
+#                     M_mouth_fixed = None
+
+#                      # Process initial frame to show first reference frame
+#                     frame = client_frames.get(websocket)
+#                     if frame is not None:
+#                         # This call should show the first reference frame, not user landmarks
+#                         await process_and_send_frame(websocket, frame, show_first_reference=True)
+#                 else:
+#                     # If turning off CV, also stop reference playback
+#                     # play_reference = False
+#                     # frame_idx = 0
+#                     fixed_alignment = False
+#                     M_jaw_fixed = None
+#                     M_mouth_fixed = None
+#                 # Send updated state back
+#                 await websocket.send_json({
+#                     "type": "status",
+#                     "cv_running": cv_running,
+#                     "play_reference": play_reference
+#                 })
+            
+#             elif command["type"] == "play_reference":
+#                 play_reference = command["value"]
+#                 print(f"🎵 Play Reference: {play_reference}")
+                
+#                 if play_reference:
+#                     # Stop live CV when playing reference
+#                     frame_idx = 0
+
+                    
+#                     # # Play audio if supported
+#                     # print("🎵 Playing reference audio")
+#                     # try:
+#                     #     play_audio()
+#                     # except Exception as e:
+#                     #     print(f"⚠️ Error playing audio: {e}")
+                    
+#                     # Start reference playback as a separate task
+#                     asyncio.create_task(reference_playback_loop(websocket))
+#                 else:
+#                     # Reset state when stopping reference playback
+#                     frame_idx = 0
+#                     # fixed_alignment = False
+
+                
+#                 # Send updated state back
+#                 await websocket.send_json({
+#                     "type": "status",
+#                     "cv_running": cv_running,
+#                     "play_reference": play_reference
+#                 })
+
+#     except WebSocketDisconnect:
+#         print(f"❌ WebSocket Disconnected: {websocket.client}")
+#     except Exception as e:
+#         print(f"❌ WebSocket Error: {e}")
+#         import traceback
+#         traceback.print_exc()
+#     finally:
+#         clients.remove(websocket)
+#         if websocket in client_frames:
+#             del client_frames[websocket]
+
+# # Add to global variables
+# frame_queue = Queue()
+# is_processing = False
+
+# async def reference_playback_loop(websocket: WebSocket):
+#     """Continuously send reference landmarks while play_reference is active."""
+#     global play_reference, frame_idx, fixed_alignment, M_jaw_fixed, M_mouth_fixed, is_processing
+
+#     try:
+        
+#         # Reset state at beginning
+#         frame_idx = 0
+#         fixed_alignment = False
+#         M_jaw_fixed = None
+#         M_mouth_fixed = None
+        
+#         # Notify client that reference playback has started
+#         await websocket.send_json({
+#             "type": "play_reference",
+#             "value": True
+#         })
+
+#         # First, get initial frame and compute alignment matrices
+#         initial_frame = client_frames.get(websocket)
+#         if initial_frame is None:
+#             print("⚠️ No frame available to compute initial alignment")
+#             await websocket.send_json({
+#                 "type": "error",
+#                 "message": "No camera frame available for alignment"
+#             })
+#             play_reference = False
+#             return
+            
+       
+
+#         # Main playback loop
+#         total_frames = len(reference_landmarks_all_frames)
+#         while play_reference and websocket in clients and frame_idx < total_frames:
+#             is_processing = True
+#             start_time = time.time()
+
+#             # Get latest frame or use initial frame if none available
+#             current_frame = client_frames.get(websocket, initial_frame)
+                  
+#             # Process frame with current index
+#             landmarks_data, new_frame_idx, fixed_alignment, M_jaw_fixed, M_mouth_fixed = process_frame(
+#                 current_frame, 
+#                 reference_landmarks=reference_landmarks_all_frames,
+#                 play_reference=True, 
+#                 frame_idx=frame_idx,
+#                 fixed_alignment=fixed_alignment,
+#                 M_jaw_fixed=M_jaw_fixed, 
+#                 M_mouth_fixed=M_mouth_fixed
+#             )
+
+#             # Ensure landmarks type is set to reference
+#             if isinstance(landmarks_data, dict) and "landmarks" in landmarks_data:
+#                 landmarks_data["type"] = "reference"
+            
+#             # Send reference landmarks
+#             await websocket.send_json({
+#                 "type": "landmarks",
+#                 "data": landmarks_data,
+
+#             })
+
+#             print(f"📤 Sent reference landmarks to client (frame {frame_idx}/{total_frames})")
+            
+#             # Update frame index (increment by 1)
+#             frame_idx += 1
+            
+#             # Control timing for smooth playback (~30fps)
+#             processing_time = time.time() - start_time
+#             target_frame_time = 0.033  # ~30fps
+#             sleep_time = max(0.001, target_frame_time - processing_time)
+            
+#             print(f"Frame {frame_idx}/{total_frames} processed in {processing_time:.3f}s, waiting {sleep_time:.3f}s")
+#             await asyncio.sleep(sleep_time)
+#             is_processing = False
+
+#          # Notify when playback is complete
+#         await websocket.send_json({
+#             "type": "reference_completed",
+#             "message": "Reference playback completed"
+#         })
+        
+#         # Reset state after playback completes
+#         play_reference = False
+#         frame_idx = 0
+
+#     except WebSocketDisconnect:
+#         print("Client disconnected during reference playback")
+#     except asyncio.CancelledError:
+#         print("Reference playback task cancelled")
+#     except Exception as e:
+#         print(f"❌ Reference playback error: {e}")
+#         import traceback
+#         traceback.print_exc()
+        
+#         # Notify client of error
+#         try:
+#             await websocket.send_json({
+#                 "type": "error",
+#                 "message": f"Reference playback error: {str(e)}"
+#             })
+#         except:
+#             pass  # Client might be disconnected
+            
+#     finally:
+#         # Reset state when playback ends for any reason
+#         play_reference = False
+#         is_processing = False
+        
+#         # Notify client that reference playback has stopped
+#         try:
+#             await websocket.send_json({
+#                 "type": "play_reference",
+#                 "value": False
+#             })
+#         except:
+#             pass  
+   
+
+
+# if __name__ == "__main__":
+#     import uvicorn
+#     # Run on 0.0.0.0 to make it accessible from other devices on the network
+#     uvicorn.run("test:app", host="0.0.0.0", port=8000, reload=True)
 
 
 # from fastapi import FastAPI, WebSocket, WebSocketDisconnect
