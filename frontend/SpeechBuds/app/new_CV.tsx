@@ -85,8 +85,8 @@ const App = () => {
     const getServerUrl = async () => {
       // For physical devices, we need to use the host machine's IP address
       const devServerUrl = Platform.select({
-        ios: Device.isDevice ? 'wss://a75a-192-159-178-211.ngrok-free.app/ws' : 'ws://localhost:8000/ws',
-        android: Device.isDevice ? 'wss://a75a-192-159-178-211.ngrok-free.app/ws' : 'ws://localhost:8000/ws',
+        ios: Device.isDevice ? 'wss://c63d-192-159-178-211.ngrok-free.app/ws' : 'ws://localhost:8000/ws',
+        android: Device.isDevice ? 'wss://c63d-192-159-178-211.ngrok-free.app/ws' : 'ws://localhost:8000/ws',
         default: 'ws://localhost:8000/ws',
       });
 
@@ -2847,7 +2847,6 @@ export default App;
 // });
 
 // export default App;
-
 
 
 
