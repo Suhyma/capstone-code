@@ -43,7 +43,7 @@ WORD_BANK = PhonemeBank({
     "summer": "s ʌ m ɚ",
     "silly": "s ɪ l i",
     "sock": "s ɑ k",
-    "stain": "s t e ɪ n",
+    "stain": "s t eɪ n",
 })
 
 phoneme_bank_split = {word: phonemes.split() for word, phonemes in WORD_BANK.items()}
