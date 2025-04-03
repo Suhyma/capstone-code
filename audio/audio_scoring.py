@@ -113,6 +113,8 @@ def get_score(prediction):
 
     final_score = max(0, raw_score)  # ensure score is not negative
     final_score = final_score * 100
+    final_score = round(final_score, 1)
+    print("FINAL SCORE: " + str(final_score))
     return final_score, extra_phonemes, missing_phonemes
 
 
