@@ -18,14 +18,14 @@ feedback_dictionaries = {
     }
 }
 
-def generate_feedback_for_target(extra_phoneme, target_phoneme):
+def generate_feedback_for_target(extra_phoneme, target_phoneme, feedback):
     feedback_dict = feedback_dictionaries.get(target_phoneme, {})
-    feedback = []
    
     if extra_phoneme in feedback_dict:
         feedback.append(f"{feedback_dict[extra_phoneme]}")
     else:
-        # feedback.append(f"No specific feedback for correcting {extra_phoneme} to {target_phoneme}")
-        feedback.append(f"Watch the video above for help!")
+        generic = "Watch the video above for help! "
+        if generic not in feedback:
+            feedback.append(generic)
 
     return feedback

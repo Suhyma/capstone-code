@@ -140,7 +140,7 @@ def submit_audio(request):
                 score, extra_phonemes, missing_phonemes = get_score(phoneme_results)
                 feedback = []
                 for extra, target in zip(extra_phonemes, missing_phonemes):
-                    feedback.extend(generate_feedback_for_target(extra, target))
+                    generate_feedback_for_target(extra, target, feedback)
                 logger.debug(f"Feedback generated: {feedback}")
         except Exception as e:
             logger.error(f"Error during audio processing: {e}")
