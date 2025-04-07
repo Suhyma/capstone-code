@@ -67,7 +67,7 @@ def extract_phonemes(audiofile):
     audio_array, _ = librosa.load(wav_path, sr=sr)
     print(f"Audio file loaded. Sample rate: {sr}, Audio length: {len(audio_array)} samples")
     # play_audio(audio_array, sr)
-    inputs = processor(audio_array, return_tensors="pt", padding="longest", truncation=True, max_length=35000)
+    inputs = processor(audio_array, return_tensors="pt", padding="longest", truncation=True, max_length=60000)
 
     with torch.no_grad():
         logits = model(inputs["input_values"]).logits
