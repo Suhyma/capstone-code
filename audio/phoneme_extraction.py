@@ -80,7 +80,7 @@ def extract_phonemes(audiofile):
     print("Original phonemes: " + str(prediction))
     if len(prediction) >= 2 and prediction[0] == prediction[1]:
         prediction.pop(0)
-
+    print("Duplicate removed phonemes: " + str(prediction))
     # # and also remove duplicates at end of word
     # if len(prediction) >= 2 and prediction[-1] == prediction[-2]:
     #     prediction.pop()
