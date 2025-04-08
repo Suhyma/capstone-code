@@ -26,8 +26,8 @@ def decode_phonemes(ids: torch.Tensor, processor: Wav2Vec2Processor, ignore_stre
     print("Duplicate removed phonemes: " + str(phonemes))
     
     # and also remove duplicates at end of word
-    if len(prediction) >= 2 and prediction[-1] == prediction[-2]:
-        prediction.pop()
+    if len(phonemes) >= 2 and phonemes[-1] == phonemes[-2]:
+        phonemes.pop()
 
     # joins phonemes
     prediction = " ".join(phonemes)
