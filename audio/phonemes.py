@@ -26,7 +26,6 @@ WORD_BANK = PhonemeBank({
     "airplane": "e ə p l e ɪ n",
     "arrow": "æ r o ʊ",
     "berry": "b ɛ ɹ i",
-    "car": "k ɑː",
     "carrot": "k æ ɹ ə t",
     "corn": "k ɔ r n",
     "door": "d ɔː",
