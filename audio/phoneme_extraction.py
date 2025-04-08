@@ -24,6 +24,10 @@ def decode_phonemes(ids: torch.Tensor, processor: Wav2Vec2Processor, ignore_stre
     if len(phonemes) >= 2 and phonemes[0] == phonemes[1]:
         phonemes.pop(0)
     print("Duplicate removed phonemes: " + str(phonemes))
+    
+    # and also remove duplicates at end of word
+    if len(prediction) >= 2 and prediction[-1] == prediction[-2]:
+        prediction.pop()
 
     # joins phonemes
     prediction = " ".join(phonemes)
@@ -81,10 +85,6 @@ def extract_phonemes(audiofile):
     predicted_ids = torch.argmax(logits, dim=-1)
     prediction = decode_phonemes(predicted_ids[0], processor, ignore_stress=True)
     # => should give 'b ɪ k ʌ z j u ɚ z s l i p ɪ ŋ ɪ n s t ɛ d ə v k ɔ ŋ k ɚ ɪ ŋ ð ə l ʌ v l i ɹ z p ɹ ɪ n s ə s h æ z b ɪ k ʌ m ə v f ɪ t ə l w ɪ θ n b oʊ p ɹ ə ʃ æ ɡ i s ɪ t s ð ɛ ɹ ə k u ɪ ŋ d ʌ v'
-    
-    # # and also remove duplicates at end of word
-    # if len(prediction) >= 2 and prediction[-1] == prediction[-2]:
-    #     prediction.pop()
 
     os.remove(wav_path)
     return prediction
