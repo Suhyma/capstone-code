@@ -85,8 +85,8 @@ const App = () => {
     const getServerUrl = async () => {
       // For physical devices, we need to use the host machine's IP address
       const devServerUrl = Platform.select({
-        ios: Device.isDevice ? 'wss://c63d-192-159-178-211.ngrok-free.app/ws' : 'ws://localhost:8000/ws',
-        android: Device.isDevice ? 'wss://c63d-192-159-178-211.ngrok-free.app/ws' : 'ws://localhost:8000/ws',
+        ios: Device.isDevice ? 'wss://453a-2620-101-f000-7c0-00-1-8472.ngrok-free.app/ws' : 'ws://localhost:8000/ws',
+        android: Device.isDevice ? 'wss://453a-2620-101-f000-7c0-00-1-8472.ngrok-free.app/ws' : 'ws://localhost:8000/ws',
         default: 'ws://localhost:8000/ws',
       });
 
@@ -636,7 +636,7 @@ const App = () => {
 
   return (
     <SafeAreaView style={styles.container}>
-      <View style={styles.statusBar}>
+      {/* <View style={styles.statusBar}>
         <Text style={styles.statusText}>
           Server: {isConnected ? '✅ Connected' : '❌ Disconnected'}
         </Text>
@@ -646,7 +646,7 @@ const App = () => {
         <Text style={styles.statusText}>
           Landmarks: {landmarks ? `${landmarks.landmarks?.length || 0} (${landmarks.type})` : 'None'}
         </Text>
-      </View>
+      </View> */}
 
       <View style={styles.cameraContainer} onLayout={handleCameraLayout}>
        
