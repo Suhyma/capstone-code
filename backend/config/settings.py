@@ -27,7 +27,7 @@ SECRET_KEY = "django-insecure-iwdsw@)x-$=8rf7as7p^8d1q2yvkk=a8j^b9l^kf#)(l-bzqr_
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['localhost', '127.0.0.1', '10.36.104.178', '172.20.10.2', '10.2.0.2', '2849-192-159-178-211.ngrok-free.app']
+ALLOWED_HOSTS = ['localhost', '127.0.0.1', '10.36.104.178', '172.20.10.2', '10.2.0.2', '3e33-192-159-178-211.ngrok-free.app']
 
 
 # Application definition
@@ -68,7 +68,7 @@ ROOT_URLCONF = "config.urls"
 
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:8081",  # Add the correct URL for your frontend
-    "https://2849-192-159-178-211.ngrok-free.app",
+    "https://3e33-192-159-178-211.ngrok-free.app",
 ]
 
 CORS_ALLOW_CREDENTIALS = True
