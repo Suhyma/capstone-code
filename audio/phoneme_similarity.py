@@ -9,6 +9,7 @@ PHONEME_SIMILARITY = {
     ('oʊ', 'ɔ'): 0,  # Canadian *o*-merger
     ('eɪ', 'ɛ'): 0,  # Raising effect before /r/ (e.g., *Mary* may sound like /mɛri/)
     ('u', 'ə'): 0, # Common vowel reduction with "u" sound (e.g. the word insulator, from ins/yu/lator to in/suh/lator)
+    ('ɪ', 'ə'): 0,
     
     # Canadian Raising (pre-voiceless shift)
     # ('aɪ', 'ʌɪ'): 0,  # Raised diphthong (e.g., *write* /ʌɪt/ vs. *ride* /aɪd/)
