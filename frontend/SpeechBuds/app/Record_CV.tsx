@@ -132,7 +132,7 @@ export default function Record() {
       console.log("Sending video URL to backend...");
   
       const response = await axios.post(
-        "https://0636-2620-101-f000-7c0-00-b0eb.ngrok-free.app/api/submit_audio/",
+        "https://e794-2620-101-f000-7c0-00-b0eb.ngrok-free.app/api/submit_audio/",
         formData,
         {
           headers: {
